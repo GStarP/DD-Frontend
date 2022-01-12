@@ -1,11 +1,11 @@
-name: "ci"
+name: "CI"
 on:
   push:
     branches:
       - master
 jobs:
   build-and-deploy:
-    name: ci
+    name: CI
     runs-on: ubuntu-18.04
 
     strategy:

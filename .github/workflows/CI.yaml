@@ -45,12 +45,12 @@ jobs:
           password: ${{ secrets.PWD }}
           command_timeout: "30m"
           script: |
-            echo '${{ secrets.PWD }}' | sudo -S service docker start
-            echo '${{ secrets.PWD }}' | sudo -S docker stop ${{ secrets.IMG_NAME }}
-            echo '${{ secrets.PWD }}' | sudo -S docker rm ${{ secrets.IMG_NAME }}
-            echo '${{ secrets.PWD }}' | sudo -S docker rmi ${{ secrets.DOCKER_USN }}/${{ secrets.IMG_NAME }}
-            echo '${{ secrets.PWD }}' | sudo -S docker pull ${{ secrets.DOCKER_USN }}/${{ secrets.IMG_NAME }}:latest
-            echo '${{ secrets.PWD }}' | sudo -S docker run -d \
+            service docker start
+            docker stop ${{ secrets.IMG_NAME }}
+            docker rm ${{ secrets.IMG_NAME }}
+            docker rmi ${{ secrets.DOCKER_USN }}/${{ secrets.IMG_NAME }}
+            docker pull ${{ secrets.DOCKER_USN }}/${{ secrets.IMG_NAME }}:latest
+            docker run -d \
               --restart=always \
               --name ${{ secrets.IMG_NAME }} \
               -p 3000:80 \

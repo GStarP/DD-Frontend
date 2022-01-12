@@ -36,22 +36,3 @@ jobs:
           registry: docker.io
           username: ${{ secrets.DOCKER_USN }}
           password: ${{ secrets.DOCKER_PWD}}
-
-      - name: Deploy to Server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USN }}
-          password: ${{ secrets.PWD }}
-          command_timeout: "30m"
-          script: |
-            service docker start
-            docker stop ${{ secrets.IMG_NAME }}
-            docker rm ${{ secrets.IMG_NAME }}
-            docker rmi ${{ secrets.DOCKER_USN }}/${{ secrets.IMG_NAME }}
-            docker pull ${{ secrets.DOCKER_USN }}/${{ secrets.IMG_NAME }}:latest
-            docker run -d \
-              --restart=always \
-              --name ${{ secrets.IMG_NAME }} \
-              -p 3000:80 \
-              ${{ secrets.DOCKER_USN }}/${{ secrets.IMG_NAME }}

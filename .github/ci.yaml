@@ -1,0 +1,57 @@
+name: "ci"
+on:
+  push:
+    branches:
+      - master
+jobs:
+  build-and-deploy:
+    name: ci
+    runs-on: ubuntu-18.04
+
+    strategy:
+      matrix:
+        node-version: [14.15]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Artifact
+        run: npm run build
+
+      - name: Build & Push Docker Image
+        uses: mr-smithers-excellent/docker-build-push@v3
+        with:
+          image: ${{ secrets.DOCKER_USN }}/${{ secrets.IMG_NAME }}
+          tag: latest
+          dockerfile: Dockerfile
+          registry: docker.io
+          username: ${{ secrets.DOCKER_USN }}
+          password: ${{ secrets.DOCKER_PWD}}
+
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USN }}
+          password: ${{ secrets.PWD }}
+          command_timeout: "30m"
+          script: |
+            echo '${{ secrets.PWD }}' | sudo -S service docker start
+            echo '${{ secrets.PWD }}' | sudo -S docker stop ${{ secrets.IMG_NAME }}
+            echo '${{ secrets.PWD }}' | sudo -S docker rm ${{ secrets.IMG_NAME }}
+            echo '${{ secrets.PWD }}' | sudo -S docker rmi ${{ secrets.DOCKER_USN }}/${{ secrets.IMG_NAME }}
+            echo '${{ secrets.PWD }}' | sudo -S docker pull ${{ secrets.DOCKER_USN }}/${{ secrets.IMG_NAME }}:latest
+            echo '${{ secrets.PWD }}' | sudo -S docker run -d \
+              --restart=always \
+              --name ${{ secrets.IMG_NAME }} \
+              -p 3000:80 \
+              ${{ secrets.DOCKER_USN }}/${{ secrets.IMG_NAME }}

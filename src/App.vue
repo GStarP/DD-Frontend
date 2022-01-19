@@ -2,7 +2,7 @@
   <router-view />
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 // must manually import
 import 'element-plus/es/components/message/style/css';
 </script>

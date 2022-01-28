@@ -20,6 +20,10 @@ const routes = [
       {
         path: '',
         component: () => import('@/pages/About.vue')
+      },
+      {
+        path: 'new-friend',
+        component: () => import('@/pages/NewFriend.vue')
       }
     ]
   }

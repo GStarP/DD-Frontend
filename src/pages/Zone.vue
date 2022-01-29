@@ -70,7 +70,7 @@ import {
   ChatRound
 } from '@element-plus/icons-vue';
 import router from '@/plugins/router';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 /**
  * 顶部栏
  */
@@ -124,7 +124,11 @@ const like = (bid: number) => {
 };
 // 请求评论
 const reqComment = (bid: number) => {
-  ElMessage.info('req comment');
+  ElMessageBox.prompt('Write down your comment', 'Comment').then((data) => {
+    if (data.length > 0) {
+      ElMessage.info(data.value);
+    }
+  });
 };
 </script>
 

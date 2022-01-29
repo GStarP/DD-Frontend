@@ -21,7 +21,13 @@
             <div class="user-brief__id">ID: {{ u.userId }}</div>
           </div>
           <div class="user-brief__action">
-            <el-button type="primary" size="large" round>Add Friend</el-button>
+            <el-button
+              type="primary"
+              size="large"
+              round
+              @click="sendFriendReq(u.userId)"
+              >Add Friend</el-button
+            >
           </div>
         </div>
       </el-scrollbar>
@@ -35,7 +41,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { Search } from '@element-plus/icons-vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 
 // Input
 const searchInput = ref('');
@@ -58,6 +64,16 @@ for (let i = 0; i < 10; i++) {
       'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
   });
 }
+// 发送好友请求
+const sendFriendReq = (userId: number) => {
+  ElMessageBox.prompt('Input friend request reason', 'Friend Request').then(
+    (data) => {
+      if (data.value.length > 0) {
+        ElMessage.info(data.value);
+      }
+    }
+  );
+};
 </script>
 
 <style lang="scss">

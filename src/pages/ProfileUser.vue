@@ -172,7 +172,13 @@ const submitEditProfile = () => {
 };
 // 添加好友
 const addFriend = () => {
-  ElMessage.info('add friend');
+  ElMessageBox.prompt('Input friend request reason', 'Friend Request').then(
+    (data) => {
+      if (data.value.length > 0) {
+        ElMessage.info(data.value);
+      }
+    }
+  );
 };
 // 删除好友
 const delFriend = () => {

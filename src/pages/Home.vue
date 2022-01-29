@@ -39,6 +39,7 @@ import { ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import zoneImg from '@/assets/zone.png';
 import ListFriend from '@/components/ListFriend.vue';
+import router from '@/plugins/router';
 
 /**
  * 侧边栏顶部状态条
@@ -47,7 +48,9 @@ const avatarImg =
   'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png';
 const nickname = 'Dong Shao';
 const toZone = () => {
-  ElMessage.info('to zone');
+  router.push({
+    path: '/home/zone'
+  });
 };
 
 /**
@@ -76,6 +79,7 @@ const sideMode = ref(SideMode.Frd);
     box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
+    z-index: 2;
     .status-header {
       width: 100%;
       height: 64px;

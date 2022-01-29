@@ -19,7 +19,7 @@
           {{ tabs[1] }}
         </div>
       </div>
-      <span></span>
+      <span style="width: 32px; height: 1px;"></span>
     </div>
     <div class="new-friend__main">
       <template v-if="curTab === 0">
@@ -43,7 +43,9 @@ import HandleFriend from '@/components/HandleFriend.vue';
  */
 // Back
 const back = () => {
-  router.back();
+  router.push({
+    path: '/home'
+  });
 };
 // Tab
 const tabs = ['SEARCH', 'HANDLE'];

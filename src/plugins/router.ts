@@ -24,6 +24,22 @@ const routes = [
       {
         path: 'new-friend',
         component: () => import('@/pages/NewFriend.vue')
+      },
+      {
+        path: 'zone',
+        component: () => import('@/pages/Zone.vue')
+      },
+      {
+        path: 'dialog/:type/:id',
+        component: () => import('@/pages/Dialog.vue')
+      },
+      {
+        path: 'profile/f/:id',
+        component: () => import('@/pages/ProfileUser.vue')
+      },
+      {
+        path: 'profile/g/:id',
+        component: () => import('@/pages/ProfileGroup.vue')
       }
     ]
   }

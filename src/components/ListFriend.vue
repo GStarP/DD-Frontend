@@ -11,6 +11,7 @@
           :class="{ 'friend-item-active': frd.friendId == 1 }"
           v-for="frd in friendList"
           :key="'frd' + frd.friendId"
+          @click="toFriendDialog(frd.friendId)"
         >
           <el-avatar
             class="friend-item__avatar"
@@ -56,6 +57,11 @@ for (let i = 0; i < 15; i++) {
     recentTime: 'Today 13:45'
   });
 }
+const toFriendDialog = (uid: number) => {
+  router.push({
+    path: `/home/dialog/f/${uid}`
+  });
+};
 </script>
 
 <style lang="scss">

@@ -22,3 +22,15 @@ interface FriendRequest {
   userAvatar: string;
   description: string;
 }
+
+// 用户详细信息
+interface UserInfo {
+  userId: number;
+  userName: string;
+  email: string;
+  phone: string;
+  gender: 0 | 1;
+  age: number;
+  isFriend: boolean;
+  isBlacked: boolean;
+}

@@ -16,8 +16,11 @@
           <el-avatar
             class="friend-item__avatar"
             :size="44"
-            :src="frd.avatar"
-          ></el-avatar>
+            :style="`font-size: 20px;background-color: ${generateAvatarColor(
+              frd.name
+            )}`"
+            >{{ frd.name.substring(0, 1) }}</el-avatar
+          >
           <div class="friend-item__main">
             <div class="friend-item__top">
               <div class="friend-item__name">{{ frd.name }}</div>
@@ -34,6 +37,7 @@
 <script lang="ts" setup>
 import router from '@/plugins/router';
 import { Plus } from '@element-plus/icons-vue';
+import { generateAvatarColor } from '@/utils/avatar';
 /**
  * 查找好友，处理好友申请的入口
  */
@@ -52,7 +56,7 @@ for (let i = 0; i < 15; i++) {
     friendId: i,
     avatar:
       'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png',
-    name: 'Feng Liu',
+    name: String.fromCharCode(i + 65) + 'eng Liu',
     recentText: 'did any students handle their homework?',
     recentTime: 'Today 13:45'
   });

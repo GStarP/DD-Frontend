@@ -2,7 +2,13 @@
   <div class="home">
     <div class="home__side">
       <div class="status-header">
-        <el-avatar :size="32" :src="avatarImg"></el-avatar>
+        <el-avatar
+          :size="32"
+          :style="`font-size: 16px;background-color: ${generateAvatarColor(
+            nickname
+          )}`"
+          >{{ nickname.substring(0, 1) }}</el-avatar
+        >
         <div class="status-header__name">{{ nickname }}</div>
         <el-image
           class="status-header__zone"
@@ -40,6 +46,7 @@ import { ElMessage } from 'element-plus';
 import zoneImg from '@/assets/zone.png';
 import ListFriend from '@/components/ListFriend.vue';
 import router from '@/plugins/router';
+import { generateAvatarColor } from '@/utils/avatar';
 
 /**
  * 侧边栏顶部状态条

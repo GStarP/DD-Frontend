@@ -9,8 +9,11 @@
         >
           <el-avatar
             class="friend-request__avatar"
-            :src="f.userAvatar"
-          ></el-avatar>
+            :style="`font-size: 24px;background-color: ${generateAvatarColor(
+              f.userName
+            )}`"
+            >{{ f.userName.substring(0, 1) }}</el-avatar
+          >
           <div class="friend-request__main">
             <div class="friend-request__name">{{ f.userName }}</div>
             <div class="friend-request__desc">{{ f.description }}</div>
@@ -41,6 +44,8 @@
 <script lang="ts" setup>
 import { Select, CloseBold } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { generateAvatarColor } from '@/utils/avatar';
+
 // 好友请求
 const friendRequests: FriendRequest[] = [];
 // mock

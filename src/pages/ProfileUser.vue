@@ -12,7 +12,13 @@
     <div class="profile-user__main">
       <div class="user-profile">
         <div class="user-profile__main">
-          <el-avatar class="user-profile-avatar"></el-avatar>
+          <el-avatar
+            class="user-profile-avatar"
+            :style="`font-size: 24px;background-color: ${generateAvatarColor(
+              userInfo.userName
+            )}`"
+            >{{ userInfo.userName.substring(0, 1) }}</el-avatar
+          >
           <div class="user-profile-info">
             <div class="user-profile-name">{{ userInfo.userName }}</div>
             <div class="user-profile-id">ID: {{ userInfo.userId }}</div>
@@ -121,6 +127,8 @@ import router from '@/plugins/router';
 import { computed } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { ref, reactive } from 'vue';
+import { generateAvatarColor } from '@/utils/avatar';
+
 // 获取路由参数
 const route = useRoute();
 const userId = parseInt(route.params.id as string);

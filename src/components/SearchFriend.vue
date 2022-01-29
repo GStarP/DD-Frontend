@@ -15,7 +15,13 @@
           :key="'search' + u.userId"
           class="user-brief"
         >
-          <el-avatar class="user-brief__avatar" :src="u.userAvatar"></el-avatar>
+          <el-avatar
+            class="user-brief__avatar"
+            :style="`font-size: 24px;background-color: ${generateAvatarColor(
+              u.userName
+            )}`"
+            >{{ u.userName.substring(0, 1) }}</el-avatar
+          >
           <div class="user-brief__main">
             <div class="user-brief__name">{{ u.userName }}</div>
             <div class="user-brief__id">ID: {{ u.userId }}</div>
@@ -42,6 +48,7 @@
 import { ref } from 'vue';
 import { Search } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { generateAvatarColor } from '@/utils/avatar';
 
 // Input
 const searchInput = ref('');

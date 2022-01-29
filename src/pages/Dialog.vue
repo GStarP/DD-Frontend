@@ -11,7 +11,26 @@
         ><UserFilled
       /></el-icon>
     </div>
-    <div class="dialog__main"></div>
+    <div class="dialog__main">
+      <div class="message-list">
+        <el-scrollbar>
+          <div
+            class="message"
+            :class="{
+              message__self: m.sender === uid
+            }"
+            v-for="m in messages"
+            :key="`s${m.sender}r${m.receiver}t${m.time}`"
+          >
+            <el-avatar class="message-avatar" :size="48"></el-avatar>
+            <div class="triangle"></div>
+            <div class="message-content">
+              {{ m.payload }}
+            </div>
+          </div>
+        </el-scrollbar>
+      </div>
+    </div>
     <div class="dialog__toolbar">
       <el-icon :size="28"><picture-filled /></el-icon>
       <el-icon :size="28"><eleme /></el-icon>
@@ -29,7 +48,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import {
   ArrowLeft,
@@ -39,6 +58,7 @@ import {
 } from '@element-plus/icons-vue';
 import router from '@/plugins/router';
 import { ElMessage } from 'element-plus';
+import { useStore } from 'vuex';
 // 获取路由参数
 const route = useRoute();
 const type = route.params.type as string;
@@ -73,6 +93,22 @@ const toProfile = () => {
     path: `/home/profile/${type}/${id}`
   });
 };
+/**
+ * 聊天框
+ */
+const messages: Message[] = [];
+// mock
+for (let i = 0; i < 10; i++) {
+  messages.push({
+    sender: i % 2,
+    receiver: (i % 2) + 1,
+    type: 'text',
+    time: '2022-01-29 21:34',
+    payload: 'What are you doing? What are you doing! What are you doing...'
+  });
+}
+const store = useStore();
+const uid = computed(() => store.state.uid as number);
 /**
  * 输入框
  */
@@ -126,6 +162,63 @@ const sendText = () => {
   }
   &__main {
     flex: 1;
+  }
+  .message-list {
+    height: 100%;
+    position: relative;
+    .el-scrollbar {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 0px 24px;
+    }
+    .message {
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+      margin-top: 8px;
+      position: relative;
+      &:first-child {
+        margin-top: 24px;
+      }
+      &:last-child {
+        margin-bottom: 24px;
+      }
+      &-content {
+        margin-left: 16px;
+        width: 30vw;
+        min-width: 300px;
+        box-sizing: border-box;
+        padding: 8px 12px;
+        background-color: #dcdfe6;
+        border-radius: 8px;
+        z-index: 2;
+      }
+      .triangle {
+        width: 0;
+        height: 0;
+        border-bottom: 16px #dcdfe6 solid;
+        border-top: 16px transparent solid;
+        border-left: 16px transparent solid;
+        border-right: 16px transparent solid;
+        position: absolute;
+        left: 50px;
+        top: -8px;
+        z-index: 1;
+      }
+
+      &__self {
+        flex-direction: row-reverse;
+        .message-content {
+          margin-right: 16px;
+        }
+        .triangle {
+          right: 50px;
+          left: auto;
+        }
+      }
+    }
   }
   &__toolbar {
     height: 48px;

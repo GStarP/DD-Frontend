@@ -22,10 +22,20 @@
             v-for="m in messages"
             :key="`s${m.sender}r${m.receiver}t${m.time}`"
           >
-            <el-avatar class="message-avatar" :size="48"></el-avatar>
-            <div class="triangle"></div>
-            <div class="message-content">
-              {{ m.payload }}
+            <el-avatar
+              class="message-avatar"
+              :size="48"
+              :style="`font-size: 20px;background-color: ${generateAvatarColor(
+                userName(m.sender)
+              )}`"
+              >{{ userName(m.sender).substring(0, 1) }}</el-avatar
+            >
+            <div class="message__main">
+              <div class="message-sender">{{ userName(m.sender) }}</div>
+              <div class="triangle"></div>
+              <div class="message-content">
+                {{ m.payload }}
+              </div>
             </div>
           </div>
         </el-scrollbar>
@@ -59,6 +69,8 @@ import {
 import router from '@/plugins/router';
 import { ElMessage } from 'element-plus';
 import { useStore } from 'vuex';
+import { generateAvatarColor } from '@/utils/avatar';
+
 // 获取路由参数
 const route = useRoute();
 const type = route.params.type as string;
@@ -109,6 +121,10 @@ for (let i = 0; i < 10; i++) {
 }
 const store = useStore();
 const uid = computed(() => store.state.uid as number);
+// TODO 缓存用户名
+const userName = (uid: number) => {
+  return 'Feng Liu';
+};
 /**
  * 输入框
  */
@@ -185,8 +201,17 @@ const sendText = () => {
       &:last-child {
         margin-bottom: 24px;
       }
+      &__main {
+        display: flex;
+        flex-direction: column;
+        margin-left: 12px;
+      }
+      &-sender {
+        font-size: 14px;
+        margin-bottom: 4px;
+        color: #303133;
+      }
       &-content {
-        margin-left: 16px;
         width: 30vw;
         min-width: 300px;
         box-sizing: border-box;
@@ -198,20 +223,23 @@ const sendText = () => {
       .triangle {
         width: 0;
         height: 0;
-        border-bottom: 16px #dcdfe6 solid;
-        border-top: 16px transparent solid;
+        border-top: 16px #dcdfe6 solid;
+        border-bottom: 16px transparent solid;
         border-left: 16px transparent solid;
         border-right: 16px transparent solid;
         position: absolute;
         left: 50px;
-        top: -8px;
+        top: 26px;
         z-index: 1;
       }
 
       &__self {
         flex-direction: row-reverse;
-        .message-content {
-          margin-right: 16px;
+        .message__main {
+          margin-right: 12px;
+        }
+        .message-sender {
+          text-align: right;
         }
         .triangle {
           right: 50px;

@@ -16,11 +16,24 @@
         <div class="blog" v-for="b in blogList" :key="'blog' + b.blogId">
           <div>
             <div class="blog__header">
-              <el-avatar class="blog-avatar" :src="b.userAvatar"></el-avatar>
+              <el-avatar
+                class="blog-avatar"
+                :style="`font-size: 24px;background-color: ${generateAvatarColor(
+                  b.userName
+                )}`"
+                >{{ b.userName.substring(0, 1) }}</el-avatar
+              >
               <div class="blog-poster">
                 <div class="blog-poster-name">{{ b.userName }}</div>
                 <div class="blog-poster-time">{{ b.timestamp }}</div>
               </div>
+              <el-button
+                v-if="uid === b.userId"
+                type="text"
+                class="blog-delete"
+                @click="delBlog(b.blogId)"
+                >Delete</el-button
+              >
             </div>
             <div class="blog__main">
               <div class="blog-text">{{ b.context }}</div>
@@ -71,6 +84,9 @@ import {
 } from '@element-plus/icons-vue';
 import router from '@/plugins/router';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { generateAvatarColor } from '@/utils/avatar';
+import { useStore } from 'vuex';
+import { computed } from 'vue';
 /**
  * 顶部栏
  */
@@ -84,6 +100,9 @@ const back = () => {
 const reqPostBlog = () => {
   ElMessage.info('req post new blog');
 };
+// uid
+const store = useStore();
+const uid = computed(() => store.state.uid as number);
 
 /**
  * 空间主体
@@ -94,6 +113,7 @@ const blogList: Blog[] = [];
 for (let i = 0; i < 10; i++) {
   blogList.push({
     blogId: i,
+    userId: i % 2,
     userName: 'Qin Liu',
     userAvatar:
       'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png',
@@ -118,6 +138,14 @@ for (let i = 0; i < 10; i++) {
     ]
   });
 }
+// 删除动态
+const delBlog = (bid: number) => {
+  ElMessageBox.confirm('Are you sure to delete this blog?', 'Delete Blog').then(
+    () => {
+      ElMessage.info('deleted');
+    }
+  );
+};
 // 点赞
 const like = (bid: number) => {
   ElMessage.info('like');
@@ -216,6 +244,10 @@ const reqComment = (bid: number) => {
         font-size: 14px;
         color: #909399;
       }
+    }
+    &-delete {
+      margin-left: auto;
+      color: #909399;
     }
     &-text {
       margin-top: 8px;

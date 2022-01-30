@@ -7,6 +7,7 @@ interface BlogComment {
 
 interface Blog {
   blogId: number;
+  userId: number;
   userName: string;
   userAvatar: string;
   timestamp: string;

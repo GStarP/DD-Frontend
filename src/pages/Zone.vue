@@ -9,6 +9,35 @@
         <el-icon class="zone-post" :size="32" @click="reqPostBlog"
           ><CirclePlus
         /></el-icon>
+        <!-- 发表动态弹窗 -->
+        <el-dialog v-model="postBlogShow" width="600px" title="New Blog">
+          <el-input
+            v-model="newBlogTextInput"
+            type="textarea"
+            autosize
+            placeholder="Input blog text"
+          ></el-input>
+          <el-upload
+            class="post-blog-picture"
+            accept="image/*"
+            :limit="1"
+            action="#"
+            list-type="picture"
+            :auto-upload="false"
+            :file-list="picturesInput"
+            :on-change="onPitcuresChange"
+          >
+            <el-button :icon="Upload">Upload Picture</el-button>
+            <template #tip>
+              <div class="el-upload__tip">
+                only allow 1 pictures
+              </div>
+            </template>
+          </el-upload>
+          <template #footer>
+            <el-button type="primary" @click="submitPostBlog">Submit</el-button>
+          </template>
+        </el-dialog>
       </div>
     </div>
     <div class="zone__main">
@@ -80,13 +109,21 @@ import {
   CirclePlus,
   Star,
   StarFilled,
-  ChatRound
+  ChatRound,
+  Upload
 } from '@element-plus/icons-vue';
 import router from '@/plugins/router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { generateAvatarColor } from '@/utils/avatar';
 import { useStore } from 'vuex';
 import { computed } from 'vue';
+import { ref } from 'vue';
+import type { UploadFile } from 'element-plus/es/components/upload/src/upload.type';
+
+// uid
+const store = useStore();
+const uid = computed(() => store.state.uid as number);
+
 /**
  * 顶部栏
  */
@@ -97,13 +134,23 @@ const back = () => {
   });
 };
 // 请求发表动态
+const postBlogShow = ref(false);
 const reqPostBlog = () => {
-  ElMessage.info('req post new blog');
+  postBlogShow.value = true;
 };
-// uid
-const store = useStore();
-const uid = computed(() => store.state.uid as number);
-
+// 发表动态弹窗
+const newBlogTextInput = ref('');
+const picturesInput = ref([] as UploadFile[]);
+const onPitcuresChange = (file: UploadFile, list: UploadFile[]) => {
+  picturesInput.value = list;
+  console.log(list);
+};
+const submitPostBlog = () => {
+  if (newBlogTextInput.value.length > 0) {
+    ElMessage.info(newBlogTextInput.value);
+    postBlogShow.value = false;
+  }
+};
 /**
  * 空间主体
  */
@@ -187,13 +234,23 @@ const reqComment = (bid: number) => {
     font-size: 20px;
   }
   &-post {
-    transition: color 0.5s, background-color 0.5s;
     border-radius: 50%;
+    transition: color 0.3s cubic-bezier(0.19, 1, 0.22, 1);
     &:hover {
       cursor: pointer;
-      color: #fff;
-      background-color: #000;
+      color: #409eff;
     }
+  }
+  .el-dialog__body {
+    padding-top: 10px;
+    textarea {
+      padding: 0;
+      border: none;
+      resize: none;
+    }
+  }
+  .post-blog-picture {
+    margin-top: 24px;
   }
   &__main {
     height: 100%;

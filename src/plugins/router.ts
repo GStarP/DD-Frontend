@@ -26,6 +26,10 @@ const routes = [
         component: () => import('@/pages/NewFriend.vue')
       },
       {
+        path: 'new-group',
+        component: () => import('@/pages/NewGroup.vue')
+      },
+      {
         path: 'zone',
         component: () => import('@/pages/Zone.vue')
       },

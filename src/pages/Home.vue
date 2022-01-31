@@ -29,7 +29,7 @@
           </el-tab-pane>
           <el-tab-pane :name="SideMode.Grp">
             <template #label><div>GROUP</div></template>
-            <div>GROUP</div>
+            <list-group />
           </el-tab-pane>
         </el-tabs>
       </div>
@@ -47,6 +47,7 @@ import zoneImg from '@/assets/zone.png';
 import ListFriend from '@/components/ListFriend.vue';
 import router from '@/plugins/router';
 import { generateAvatarColor } from '@/utils/avatar';
+import ListGroup from '@/components/ListGroup.vue';
 
 /**
  * 侧边栏顶部状态条

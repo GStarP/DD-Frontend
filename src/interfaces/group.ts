@@ -2,7 +2,14 @@
 interface GroupBrief {
   groupId: number;
   groupName: string;
-  groupAvatar: string;
+}
+
+// 群组申请信息
+interface GroupRequest {
+  requestId: number;
+  group: GroupBrief;
+  user: UserBrief;
+  reason: string;
 }
 
 // 群组详细信息

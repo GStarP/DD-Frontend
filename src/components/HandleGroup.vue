@@ -1,40 +1,44 @@
 <template>
-  <div class="handle-friend">
-    <div class="handle-friend__result">
-      <el-scrollbar v-if="friendRequests.length > 0">
+  <div class="handle-group">
+    <div class="handle-group__result">
+      <el-scrollbar v-if="groupRequests.length > 0">
         <div
-          v-for="f in friendRequests"
-          :key="'handle' + f.requestId"
-          class="friend-request"
+          v-for="g in groupRequests"
+          :key="'handle' + g.requestId"
+          class="group-request"
         >
           <el-avatar
-            class="friend-request__avatar"
+            class="group-request__avatar"
             :style="`font-size: 24px;background-color: ${generateAvatarColor(
-              f.userName
+              g.user.userName
             )}`"
-            >{{ f.userName.substring(0, 1) }}</el-avatar
+            >{{ g.user.userName.substring(0, 1) }}</el-avatar
           >
-          <div class="friend-request__main">
-            <div class="friend-request__name">{{ f.userName }}</div>
-            <div class="friend-request__desc">{{ f.description }}</div>
+          <div class="group-request__main">
+            <div class="group-request__info">
+              <div class="group-request__user">{{ g.user.userName }}</div>
+              <span>join</span>
+              <div class="group-request__group">{{ g.group.groupName }}</div>
+            </div>
+            <div class="group-request__desc">{{ g.reason }}</div>
           </div>
-          <div class="friend-request__action">
+          <div class="group-request__action">
             <el-button
               circle
               :icon="Select"
               type="success"
-              @click="accept(f.requestId)"
+              @click="accept(g.requestId)"
             ></el-button>
             <el-button
               circle
               :icon="CloseBold"
               type="danger"
-              @click="refuse(f.requestId)"
+              @click="refuse(g.requestId)"
             ></el-button>
           </div>
         </div>
       </el-scrollbar>
-      <div class="handle-friend-none" v-else>
+      <div class="handle-group-none" v-else>
         No Request
       </div>
     </div>
@@ -46,31 +50,37 @@ import { Select, CloseBold } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { generateAvatarColor } from '@/utils/avatar';
 
-// 好友请求
-const friendRequests: FriendRequest[] = [];
+// 加群请求
+const groupRequests: GroupRequest[] = [];
 // mock
 for (let i = 0; i < 10; i++) {
-  friendRequests.push({
+  groupRequests.push({
     requestId: i,
-    userId: i,
-    userName: 'Yan Zhang',
-    userAvatar:
-      'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png',
-    description: 'pls check your lessons for me'
+    group: {
+      groupId: i,
+      groupName: 'SCRUM 2022'
+    },
+    user: {
+      userId: i,
+      userName: 'Chunrong Fang',
+      userAvatar: ''
+    },
+    reason: 'I want to learn this lesson'
   });
 }
-
+// 接收请求
 const accept = (rid: number) => {
   ElMessageBox.confirm(
-    'Are you sure to ACCEPT this friend request?',
+    'Are you sure to ACCEPT this group request?',
     'Confirm'
   ).then(() => {
     ElMessage.info('accepted');
   });
 };
+// 拒绝请求
 const refuse = (rid: number) => {
   ElMessageBox.confirm(
-    'Are you sure to REFUSE this friend request?',
+    'Are you sure to REFUSE this group request?',
     'Confirm'
   ).then(() => {
     ElMessage.info('refused');
@@ -79,7 +89,7 @@ const refuse = (rid: number) => {
 </script>
 
 <style lang="scss">
-.handle-friend {
+.handle-group {
   display: flex;
   flex-direction: column;
   width: 600px;
@@ -95,7 +105,7 @@ const refuse = (rid: number) => {
         width: 0;
       }
     }
-    .friend-request {
+    .group-request {
       box-sizing: border-box;
       padding: 12px 0px;
       display: flex;
@@ -106,9 +116,22 @@ const refuse = (rid: number) => {
         margin-left: 12px;
         height: 56px;
       }
-      &__name {
+      &__info {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
         height: 32px;
+        span {
+          margin: 0 12px;
+          font-size: 14px;
+          font-weight: 300;
+        }
+      }
+      &__user {
         font-size: 18px;
+      }
+      &__group {
+        font-size: 16px;
       }
       &__desc {
         font-size: 14px;
@@ -119,7 +142,8 @@ const refuse = (rid: number) => {
       }
     }
   }
-  .handle-friend-none {
+
+  .handle-group-none {
     display: flex;
     flex-direction: column;
     align-items: center;

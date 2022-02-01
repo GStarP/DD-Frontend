@@ -1,43 +1,43 @@
 <template>
-  <div class="search-friend">
+  <div class="search-group">
     <el-input
-      class="search-friend__input"
+      class="search-group__input"
       size="large"
       :prefix-icon="Search"
-      placeholder="input user id"
+      placeholder="input group id"
       v-model="searchInput"
-      @change="searchFriend"
+      @change="searchGroup"
     ></el-input>
-    <div class="search-friend__result">
+    <div class="search-group__result">
       <el-scrollbar v-if="searchRes.length > 0">
         <div
-          v-for="u in searchRes"
-          :key="'search' + u.userId"
+          v-for="g in searchRes"
+          :key="'search' + g.groupId"
           class="user-brief"
         >
           <el-avatar
             class="user-brief__avatar"
             :style="`font-size: 24px;background-color: ${generateAvatarColor(
-              u.userName
+              g.groupName
             )}`"
-            >{{ u.userName.substring(0, 1) }}</el-avatar
+            >{{ g.groupName.substring(0, 1) }}</el-avatar
           >
           <div class="user-brief__main">
-            <div class="user-brief__name">{{ u.userName }}</div>
-            <div class="user-brief__id">ID: {{ u.userId }}</div>
+            <div class="user-brief__name">{{ g.groupName }}</div>
+            <div class="user-brief__id">Group ID: {{ g.groupId }}</div>
           </div>
           <div class="user-brief__action">
             <el-button
               type="primary"
               size="large"
               round
-              @click="sendFriendReq(u.userId)"
-              >Add Friend</el-button
+              @click="sendGroupReq(g.groupId)"
+              >Join Group</el-button
             >
           </div>
         </div>
       </el-scrollbar>
-      <div class="search-friend-none" v-else>
+      <div class="search-group-none" v-else>
         No Result
       </div>
     </div>
@@ -52,7 +52,7 @@ import { generateAvatarColor } from '@/utils/avatar';
 
 // Input
 const searchInput = ref('');
-const searchFriend = () => {
+const searchGroup = () => {
   if (searchInput.value.length < 1) {
     ElMessage.error('search key cannot be empty');
   } else {
@@ -61,19 +61,17 @@ const searchFriend = () => {
   }
 };
 // 搜索结果
-const searchRes: UserBrief[] = [];
+const searchRes: GroupBrief[] = [];
 // mock
 for (let i = 0; i < 10; i++) {
   searchRes.push({
-    userId: i,
-    userName: 'Zhenyu Chen',
-    userAvatar:
-      'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
+    groupId: i,
+    groupName: 'SCRUM 2022'
   });
 }
 // 发送好友请求
-const sendFriendReq = (userId: number) => {
-  ElMessageBox.prompt('Input friend request reason', 'Friend Request').then(
+const sendGroupReq = (groupId: number) => {
+  ElMessageBox.prompt('Input group request reason', 'Group Request').then(
     (data) => {
       if (data.value.length > 0) {
         ElMessage.info(data.value);
@@ -84,7 +82,7 @@ const sendFriendReq = (userId: number) => {
 </script>
 
 <style lang="scss">
-.search-friend {
+.search-group {
   width: 600px;
   height: 100%;
   display: flex;
@@ -134,7 +132,7 @@ const sendFriendReq = (userId: number) => {
         margin-left: auto;
       }
     }
-    .search-friend-none {
+    .search-group-none {
       display: flex;
       flex-direction: column;
       align-items: center;

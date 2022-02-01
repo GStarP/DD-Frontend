@@ -25,10 +25,10 @@
     </div>
     <div class="new-group__main">
       <template v-if="curTab === 0">
-        <SearchFriend />
+        <SearchGroup />
       </template>
       <template v-if="curTab === 1">
-        <HandleFriend />
+        <HandleGroup />
       </template>
     </div>
   </div>
@@ -38,9 +38,9 @@
 import { ref } from 'vue';
 import { ArrowLeft, CirclePlus } from '@element-plus/icons-vue';
 import router from '@/plugins/router';
-import SearchFriend from '@/components/SearchFriend.vue';
-import HandleFriend from '@/components/HandleFriend.vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import SearchGroup from '@/components/SearchGroup.vue';
+import HandleGroup from '@/components/HandleGroup.vue';
 /**
  * 顶部栏
  */

@@ -12,7 +12,7 @@
       <el-scrollbar v-if="searchRes.length > 0">
         <div
           v-for="g in searchRes"
-          :key="'search' + g.groupId"
+          :key="'search' + 'g' + g.groupId"
           class="group-brief"
         >
           <el-avatar

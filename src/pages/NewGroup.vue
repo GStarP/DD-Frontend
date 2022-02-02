@@ -19,7 +19,7 @@
           {{ tabs[1] }}
         </div>
       </div>
-      <el-icon class="new-group-create" :size="32" @click="reqCreateGroup"
+      <el-icon class="new-group-create" :size="32" @click="createGroup"
         ><circle-plus
       /></el-icon>
     </div>
@@ -35,12 +35,19 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { ArrowLeft, CirclePlus } from '@element-plus/icons-vue';
 import router from '@/plugins/router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import SearchGroup from '@/components/SearchGroup.vue';
 import HandleGroup from '@/components/HandleGroup.vue';
+import { reqCreateGroup } from '@/api/group';
+import { useStore } from 'vuex';
+
+// uid
+const store = useStore();
+const uid = computed(() => store.state.uid as number);
+
 /**
  * 顶部栏
  */
@@ -59,10 +66,23 @@ const changeTab = (v: number) => {
   }
 };
 // 创建群组
-const reqCreateGroup = () => {
+const createGroup = () => {
   ElMessageBox.prompt("Please input the new group's name", 'Create Group').then(
-    (d) => {
-      ElMessage.info(d.value);
+    (data) => {
+      if (data.value.length > 0) {
+        reqCreateGroup({
+          userId: uid.value,
+          groupName: data.value
+        }).then((res) => {
+          if (res.code === 0) {
+            ElMessage.success('new group created');
+            // TODO 实际效果可能不好
+            router.push({
+              path: `/home/dialog/g/${res.data}`
+            });
+          }
+        });
+      }
     }
   );
 };

@@ -4,7 +4,7 @@
       <el-scrollbar v-if="groupRequests.length > 0">
         <div
           v-for="g in groupRequests"
-          :key="'handle' + g.requestId"
+          :key="'handle' + 'g' + g.requestId"
           class="group-request"
         >
           <el-avatar
@@ -49,32 +49,38 @@
 import { Select, CloseBold } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { generateAvatarColor } from '@/utils/avatar';
+import { reqHandleGroupRequest, reqListGroupRequest } from '@/api/group';
+import { useStore } from 'vuex';
+import { computed, ref } from 'vue';
+import { GroupRequestHandleType } from '@/api/group';
 
-// 加群请求
-const groupRequests: GroupRequest[] = [];
-// mock
-for (let i = 0; i < 10; i++) {
-  groupRequests.push({
-    requestId: i,
-    group: {
-      groupId: i,
-      groupName: 'SCRUM 2022'
-    },
-    user: {
-      userId: i,
-      userName: 'Chunrong Fang',
-      userAvatar: ''
-    },
-    reason: 'I want to learn this lesson'
-  });
-}
+// uid
+const store = useStore();
+const uid = computed(() => store.state.uid as number);
+
+// 查看加群请求
+const groupRequests = ref([] as GroupRequest[]);
+reqListGroupRequest(uid.value).then((res) => {
+  if (res.code === 0) {
+    groupRequests.value = res.data;
+  }
+});
+
 // 接收请求
 const accept = (rid: number) => {
   ElMessageBox.confirm(
     'Are you sure to ACCEPT this group request?',
     'Confirm'
   ).then(() => {
-    ElMessage.info('accepted');
+    reqHandleGroupRequest({
+      userId: uid.value,
+      groupRequestId: rid,
+      type: GroupRequestHandleType.ACCEPT
+    }).then((res) => {
+      if (res.code === 0) {
+        ElMessage.success('request accepted');
+      }
+    });
   });
 };
 // 拒绝请求
@@ -83,7 +89,15 @@ const refuse = (rid: number) => {
     'Are you sure to REFUSE this group request?',
     'Confirm'
   ).then(() => {
-    ElMessage.info('refused');
+    reqHandleGroupRequest({
+      userId: uid.value,
+      groupRequestId: rid,
+      type: GroupRequestHandleType.REFUSE
+    }).then((res) => {
+      if (res.code === 0) {
+        ElMessage.success('request refused');
+      }
+    });
   });
 };
 </script>

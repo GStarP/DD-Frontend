@@ -35,8 +35,7 @@ export async function reqListGroupRequest(userId: number) {
       },
       user: {
         userId: i,
-        userName: 'Chunrong Fang',
-        userAvatar: ''
+        userName: 'Chunrong Fang'
       },
       reason: 'I want to learn this lesson'
     });
@@ -63,4 +62,28 @@ export async function reqCreateGroup(params: {
   groupName: string;
 }) {
   return mockData(0);
+}
+
+// 1.7 查看群组资料
+export async function reqGroupInfo(groupId: number) {
+  const groupInfo: GroupInfo = {
+    groupId: 0,
+    groupName: 'SCRUM 2020',
+    members: []
+  };
+  for (let i = 0; i < 10; i++) {
+    groupInfo.members.push({
+      userId: groupId + i,
+      userName: 'Gangshan Wu'
+    });
+  }
+  return mockData(groupInfo);
+}
+
+// 1.8 退出/解散群组
+export async function reqQuitGroup(params: {
+  userId: number;
+  groupId: number;
+}) {
+  return mockData(null);
 }

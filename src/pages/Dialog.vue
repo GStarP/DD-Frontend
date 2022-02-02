@@ -82,14 +82,12 @@ let groupBrief: GroupBrief;
 if (type === 'f') {
   userBrief = {
     userId: 0,
-    userName: 'Lei Huang',
-    userAvatar: ''
+    userName: 'Lei Huang'
   } as UserBrief;
 } else if (type === 'g') {
   groupBrief = {
     groupId: 0,
-    groupName: 'SCRUM 2022',
-    groupAvatar: ''
+    groupName: 'SCRUM 2022'
   } as GroupBrief;
 }
 /**

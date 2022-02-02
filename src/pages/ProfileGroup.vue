@@ -63,69 +63,82 @@
 import router from '@/plugins/router';
 import { useRoute } from 'vue-router';
 import { ArrowLeft, CircleClose } from '@element-plus/icons-vue';
-import { computed } from 'vue';
+import { computed, reactive } from 'vue';
 import { useStore } from 'vuex';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { reqGroupInfo, reqQuitGroup } from '@/api/group';
+
 // 获取路由参数
 const route = useRoute();
 const groupId = parseInt(route.params.id as string);
-// 获取群组信息
-let groupInfo: GroupInfo;
-// mock
-groupInfo = {
-  groupId: 0,
-  groupName: 'SCRUM 2020',
-  members: []
-} as GroupInfo;
-for (let i = 0; i < 10; i++) {
-  groupInfo.members.push({
-    userId: groupId + i,
-    userName: 'Gangshan Wu',
-    userAvatar: ''
-  });
-}
-// 判断用户是否为当前群群主
+
+// uid
 const store = useStore();
 const uid = computed(() => store.state.uid as number);
-const isGroupMaster = computed(
-  () => store.state.uid === groupInfo.members[0].userId
+
+// 获取群组信息
+let groupInfo = reactive({
+  groupId: -1,
+  groupName: 'Loading...',
+  members: []
+} as GroupInfo);
+reqGroupInfo(groupId).then((res) => {
+  if (res.code === 0) {
+    // TODO 直接改变引用不会触发响应式
+    groupInfo.groupId = res.data.groupId;
+    groupInfo.groupName = res.data.groupName;
+    groupInfo.members = res.data.members;
+  }
+});
+
+// 判断用户是否为当前群群主
+const isGroupMaster = computed(() =>
+  groupInfo.members.length > 0
+    ? store.state.uid === groupInfo.members[0].userId
+    : false
 );
+
 /**
  * 顶部栏
  */
 const back = () => {
   router.back();
 };
+
 /**
  * 群组信息
  */
 // 解散/退出群组
 const quitGroup = () => {
-  if (isGroupMaster.value) {
-    ElMessageBox.confirm(
-      `Are you sure to dissolve group ${groupInfo.groupName}?`,
-      'Dissolve Group'
-    ).then(() => {
-      ElMessage.info('dissolved');
-    });
-  } else {
-    ElMessageBox.confirm(
-      `Are you sure to quit group ${groupInfo.groupName}?`,
-      'Quit Group'
-    ).then(() => {
-      ElMessage.info('quited');
-    });
-  }
-};
-// 踢出用户
-const kick = (u: UserBrief) => {
+  const keyword = computed(() => (isGroupMaster.value ? 'dissolve' : 'quit'));
+  const Keyword = computed(() => (isGroupMaster.value ? 'Dissolve' : 'Quit'));
   ElMessageBox.confirm(
-    `Are you sure to kick ${u.userName}?`,
-    'Kick Member'
+    `Are you sure to ${keyword.value} group ${groupInfo.groupName}?`,
+    `${Keyword.value} Group`
   ).then(() => {
-    ElMessage.info('kicked');
+    reqQuitGroup({
+      userId: uid.value,
+      groupId: groupId
+    }).then((res) => {
+      if (res.code === 0) {
+        ElMessage.success(`successfullt ${keyword.value}`);
+        router.push({
+          path: '/home'
+        });
+      }
+    });
   });
 };
+
+// 踢出用户
+// const kick = (u: UserBrief) => {
+//   ElMessageBox.confirm(
+//     `Are you sure to kick ${u.userName}?`,
+//     'Kick Member'
+//   ).then(() => {
+//     ElMessage.info('kicked');
+//   });
+// };
 </script>
 
 <style lang="scss">

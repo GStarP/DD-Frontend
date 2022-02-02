@@ -11,7 +11,6 @@ interface FriendBrief {
 interface UserBrief {
   userId: number;
   userName: string;
-  userAvatar: string;
 }
 
 // 好友请求信息

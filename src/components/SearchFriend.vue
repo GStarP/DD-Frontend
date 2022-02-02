@@ -66,9 +66,7 @@ const searchRes: UserBrief[] = [];
 for (let i = 0; i < 10; i++) {
   searchRes.push({
     userId: i,
-    userName: 'Zhenyu Chen',
-    userAvatar:
-      'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
+    userName: 'Zhenyu Chen'
   });
 }
 // 发送好友请求

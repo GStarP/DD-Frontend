@@ -5,33 +5,36 @@
       size="large"
       :prefix-icon="Search"
       placeholder="input group id"
-      v-model="searchInput"
-      @change="searchGroup"
+      v-model="searchKeyInput"
+      @keyup.enter="searchGroup"
     ></el-input>
     <div class="search-group__result">
       <el-scrollbar v-if="searchRes.length > 0">
         <div
           v-for="g in searchRes"
           :key="'search' + g.groupId"
-          class="user-brief"
+          class="group-brief"
         >
           <el-avatar
-            class="user-brief__avatar"
+            class="group-brief__avatar"
             :style="`font-size: 24px;background-color: ${generateAvatarColor(
               g.groupName
             )}`"
             >{{ g.groupName.substring(0, 1) }}</el-avatar
           >
-          <div class="user-brief__main">
-            <div class="user-brief__name">{{ g.groupName }}</div>
-            <div class="user-brief__id">Group ID: {{ g.groupId }}</div>
+          <div class="group-brief__main">
+            <div class="group-brief__name" @click="toGroupProfile(g.groupId)">
+              {{ g.groupName }}
+            </div>
+            <div class="group-brief__id">Group ID: {{ g.groupId }}</div>
           </div>
-          <div class="user-brief__action">
+          <div class="group-brief__action">
             <el-button
+              v-if="!g.in"
               type="primary"
               size="large"
               round
-              @click="sendGroupReq(g.groupId)"
+              @click="joinGroup(g.groupId)"
               >Join Group</el-button
             >
           </div>
@@ -45,36 +48,54 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { Search } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { generateAvatarColor } from '@/utils/avatar';
+import { reqJoinGroup, reqSearchGroup } from '@/api/group';
+import router from '@/plugins/router';
+import { useStore } from 'vuex';
+
+// uid
+const store = useStore();
+const uid = computed(() => store.state.uid as number);
 
 // Input
-const searchInput = ref('');
+const searchKeyInput = ref('');
 const searchGroup = () => {
-  if (searchInput.value.length < 1) {
+  if (searchKeyInput.value.length < 1) {
     ElMessage.error('search key cannot be empty');
   } else {
-    // TODO
-    ElMessage.info(searchInput.value);
+    reqSearchGroup(searchKeyInput.value).then((res) => {
+      if (res.code === 0) {
+        searchRes.value = res.data;
+      }
+    });
   }
 };
+
 // 搜索结果
-const searchRes: GroupBrief[] = [];
-// mock
-for (let i = 0; i < 10; i++) {
-  searchRes.push({
-    groupId: i,
-    groupName: 'SCRUM 2022'
+const searchRes = ref([] as GroupSearchBrief[]);
+const toGroupProfile = (groupId: number) => {
+  router.push({
+    path: `/home/profile/g/${groupId}`
   });
-}
-// 发送好友请求
-const sendGroupReq = (groupId: number) => {
+};
+
+// 加群
+const joinGroup = (groupId: number) => {
   ElMessageBox.prompt('Input group request reason', 'Group Request').then(
     (data) => {
       if (data.value.length > 0) {
-        ElMessage.info(data.value);
+        reqJoinGroup({
+          userId: uid.value,
+          groupId,
+          reason: data.value
+        }).then((res) => {
+          if (res.code === 0) {
+            ElMessage.success('successfully send join request');
+          }
+        });
       }
     }
   );
@@ -109,7 +130,7 @@ const sendGroupReq = (groupId: number) => {
         width: 0;
       }
     }
-    .user-brief {
+    .group-brief {
       box-sizing: border-box;
       padding: 12px 0px;
       display: flex;
@@ -123,6 +144,10 @@ const sendGroupReq = (groupId: number) => {
       &__name {
         height: 32px;
         font-size: 18px;
+        &:hover {
+          cursor: pointer;
+          text-decoration: underline;
+        }
       }
       &__id {
         font-size: 14px;

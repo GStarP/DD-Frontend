@@ -1,32 +1,32 @@
 <template>
-  <div class="list-friend">
-    <div class="new-friend" @click="toNewGroup">
+  <div class="list-group">
+    <div class="new-group" @click="toNewGroup">
       <el-icon><plus /></el-icon>
       <div>New Group</div>
     </div>
-    <div class="friend-list-container">
-      <el-scrollbar class="friend-list">
+    <div class="group-list-container">
+      <el-scrollbar class="group-list">
         <div
-          class="friend-item"
-          :class="{ 'friend-item-active': frd.friendId == 1 }"
-          v-for="frd in friendList"
-          :key="'frd' + frd.friendId"
-          @click="toFriendDialog(frd.friendId)"
+          class="group-item"
+          :class="{ 'group-item-active': grp.groupId == 1 }"
+          v-for="grp in groupList"
+          :key="'grp' + grp.groupId"
+          @click="toGroupDialog(grp.groupId)"
         >
           <el-avatar
-            class="friend-item__avatar"
+            class="group-item__avatar"
             :size="44"
             :style="`font-size: 20px;background-color: ${generateAvatarColor(
-              frd.name
+              grp.groupName
             )}`"
-            >{{ frd.name.substring(0, 1) }}</el-avatar
+            >{{ grp.groupName.substring(0, 1) }}</el-avatar
           >
-          <div class="friend-item__main">
-            <div class="friend-item__top">
-              <div class="friend-item__name">{{ frd.name }}</div>
-              <div class="friend-item__recent-time">{{ frd.recentTime }}</div>
+          <div class="group-item__main">
+            <div class="group-item__top">
+              <div class="group-item__name">{{ grp.groupName }}</div>
+              <div class="group-item__recent-time"></div>
             </div>
-            <div class="friend-item__recent-text">{{ frd.recentText }}</div>
+            <div class="group-item__recent-text">no new message</div>
           </div>
         </div>
       </el-scrollbar>
@@ -49,31 +49,27 @@ const toNewGroup = () =>
 /**
  * 好友列表
  */
-const friendList: FriendBrief[] = [];
+const groupList: GroupBrief[] = [];
 // mock
 for (let i = 0; i < 15; i++) {
-  friendList.push({
-    friendId: i,
-    avatar:
-      'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png',
-    name: String.fromCharCode(i + 65) + 'eng Liu',
-    recentText: 'did any students handle their homework?',
-    recentTime: 'Today 13:45'
+  groupList.push({
+    groupId: i,
+    groupName: String.fromCharCode(i + 65) + 'eng Liu'
   });
 }
-const toFriendDialog = (uid: number) => {
+const toGroupDialog = (gid: number) => {
   router.push({
-    path: `/home/dialog/f/${uid}`
+    path: `/home/dialog/g/${gid}`
   });
 };
 </script>
 
 <style lang="scss">
-.list-friend {
+.list-group {
   height: 100%;
   display: flex;
   flex-direction: column;
-  .new-friend {
+  .new-group {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -93,16 +89,16 @@ const toFriendDialog = (uid: number) => {
       background-color: #dcdfe6;
     }
   }
-  .friend-list-container {
+  .group-list-container {
     flex: 1;
     position: relative;
   }
-  .friend-list {
+  .group-list {
     position: absolute;
     height: 100%;
     width: 100%;
   }
-  .friend-item {
+  .group-item {
     position: relative;
     display: flex;
     flex-direction: row;

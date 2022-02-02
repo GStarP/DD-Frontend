@@ -40,15 +40,17 @@
               <div class="group-members-item__name">
                 <div>{{ m.userName }}</div>
                 <el-tag v-if="index === 0">Master</el-tag>
+                <el-tag v-if="m.userId === uid" type="warning">Me</el-tag>
               </div>
               <div class="group-members-item__id">ID: {{ m.userId }}</div>
             </div>
             <div class="group-members-item__action">
-              <el-button
+              <!-- TODO 踢出成员 -->
+              <!-- <el-button
                 v-if="isGroupMaster && uid !== m.userId"
                 @click="kick(m)"
                 >Kick</el-button
-              >
+              > -->
             </div>
           </div>
         </el-scrollbar>
@@ -77,7 +79,7 @@ groupInfo = {
 } as GroupInfo;
 for (let i = 0; i < 10; i++) {
   groupInfo.members.push({
-    userId: i,
+    userId: groupId + i,
     userName: 'Gangshan Wu',
     userAvatar: ''
   });
@@ -109,7 +111,7 @@ const quitGroup = () => {
   } else {
     ElMessageBox.confirm(
       `Are you sure to quit group ${groupInfo.groupName}?`,
-      'Dissolve Group'
+      'Quit Group'
     ).then(() => {
       ElMessage.info('quited');
     });

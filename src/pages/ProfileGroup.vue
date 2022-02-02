@@ -12,7 +12,13 @@
     <div class="profile-group__main">
       <div class="group-profile">
         <div class="group-profile__main">
-          <el-avatar class="group-profile-avatar"></el-avatar>
+          <el-avatar
+            class="group-profile-avatar"
+            :style="`font-size: 24px;background-color: ${generateAvatarColor(
+              groupInfo.groupName
+            )}`"
+            >{{ groupInfo.groupName.substring(0, 1) }}</el-avatar
+          >
           <div class="group-profile-info">
             <div class="group-profile-name">{{ groupInfo.groupName }}</div>
             <div class="group-profile-id">ID: {{ groupInfo.groupId }}</div>
@@ -34,8 +40,11 @@
           >
             <el-avatar
               class="group-members-item__avatar"
-              :src="m.userAvatar"
-            ></el-avatar>
+              :style="`font-size: 24px;background-color: ${generateAvatarColor(
+                m.userName
+              )}`"
+              >{{ m.userName.substring(0, 1) }}</el-avatar
+            >
             <div class="group-members-item__main">
               <div class="group-members-item__name">
                 <div>{{ m.userName }}</div>
@@ -67,6 +76,7 @@ import { computed, reactive } from 'vue';
 import { useStore } from 'vuex';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { reqGroupInfo, reqQuitGroup } from '@/api/group';
+import { generateAvatarColor } from '@/utils/avatar';
 
 // 获取路由参数
 const route = useRoute();

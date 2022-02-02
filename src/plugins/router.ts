@@ -14,8 +14,38 @@ const routes = [
     component: () => import('@/pages/SignUp.vue')
   },
   {
-    path: '/about',
-    component: () => import('@/pages/About.vue')
+    path: '/home',
+    component: () => import('@/pages/Home.vue'),
+    children: [
+      {
+        path: '',
+        component: () => import('@/pages/About.vue')
+      },
+      {
+        path: 'new-friend',
+        component: () => import('@/pages/NewFriend.vue')
+      },
+      {
+        path: 'new-group',
+        component: () => import('@/pages/NewGroup.vue')
+      },
+      {
+        path: 'zone',
+        component: () => import('@/pages/Zone.vue')
+      },
+      {
+        path: 'dialog/:type/:id',
+        component: () => import('@/pages/Dialog.vue')
+      },
+      {
+        path: 'profile/f/:id',
+        component: () => import('@/pages/ProfileUser.vue')
+      },
+      {
+        path: 'profile/g/:id',
+        component: () => import('@/pages/ProfileGroup.vue')
+      }
+    ]
   }
 ];
 

@@ -2,11 +2,11 @@ import { createStore } from 'vuex';
 
 const store = createStore({
   state: {
-    count: 6
+    uid: 0
   },
   mutations: {
-    inc(state) {
-      state.count++;
+    uid(state, userId: number) {
+      state.uid = userId;
     }
   }
 });

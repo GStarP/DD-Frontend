@@ -24,14 +24,16 @@
         >do not have an account?</el-link
       >
       <div class="btn-container">
-        <el-button type="primary" size="large">Sign In</el-button>
+        <el-button type="primary" size="large" @click="confirmSignIn"
+          >Sign In</el-button
+        >
         <el-divider>OR</el-divider>
         <el-button
           class="icon-btn"
           color="#000"
           size="large"
           style="color: #fff;"
-          @click="signUpWithGithub"
+          @click="signInWithGithub"
         >
           <img :src="githubIcon" />
           Sign In with GitHub</el-button
@@ -56,7 +58,20 @@ const toSignUpPage = () => {
   router.push({ path: '/sign-up' });
 };
 
-const signUpWithGithub = () => {
+const confirmSignIn = () => {
+  if (usernameInput.value.length < 1) {
+    ElMessage.error('username cannot be empty');
+  } else if (passwordInput.value.length < 1) {
+    ElMessage.error('password cannot be empty');
+  } else {
+    // TODO
+    router.push({
+      path: '/home'
+    });
+  }
+};
+
+const signInWithGithub = () => {
   ElMessage.warning('to be continued');
 };
 </script>

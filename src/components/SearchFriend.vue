@@ -6,7 +6,7 @@
       :prefix-icon="Search"
       placeholder="input user id"
       v-model="searchInput"
-      @change="searchFriend"
+      @keyup.enter="searchFriend"
     ></el-input>
     <div class="search-friend__result">
       <el-scrollbar v-if="searchRes.length > 0">
@@ -23,11 +23,14 @@
             >{{ u.userName.substring(0, 1) }}</el-avatar
           >
           <div class="user-brief__main">
-            <div class="user-brief__name">{{ u.userName }}</div>
+            <div class="user-brief__name" @click="toUserProfile(u.userId)">
+              {{ u.userName }}
+            </div>
             <div class="user-brief__id">ID: {{ u.userId }}</div>
           </div>
           <div class="user-brief__action">
             <el-button
+              v-if="!u.isFriend"
               type="primary"
               size="large"
               round
@@ -45,10 +48,17 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { Search } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { generateAvatarColor } from '@/utils/avatar';
+import { reqApplyFriend, reqSearchUserById } from '@/api/friend';
+import { useStore } from 'vuex';
+import router from '@/plugins/router';
+
+// uid
+const store = useStore();
+const uid = computed(() => store.state.userInfo.uid as number);
 
 // Input
 const searchInput = ref('');
@@ -56,25 +66,38 @@ const searchFriend = () => {
   if (searchInput.value.length < 1) {
     ElMessage.error('search key cannot be empty');
   } else {
-    // TODO
-    ElMessage.info(searchInput.value);
+    reqSearchUserById(parseInt(searchInput.value)).then((res) => {
+      if (res.code === 0) {
+        searchRes.value = [res.data];
+      }
+    });
   }
 };
+
 // 搜索结果
-const searchRes: UserBrief[] = [];
-// mock
-for (let i = 0; i < 10; i++) {
-  searchRes.push({
-    userId: i,
-    userName: 'Zhenyu Chen'
+const searchRes = ref([] as UserInfo[]);
+
+// 查看用户资料
+const toUserProfile = (userId: number) => {
+  router.push({
+    path: `/home/profile/f/${userId}`
   });
-}
+};
+
 // 发送好友请求
-const sendFriendReq = (userId: number) => {
+const sendFriendReq = (friendId: number) => {
   ElMessageBox.prompt('Input friend request reason', 'Friend Request').then(
     (data) => {
       if (data.value.length > 0) {
-        ElMessage.info(data.value);
+        reqApplyFriend({
+          userId: uid.value,
+          friendId,
+          msg: data.value
+        }).then((res) => {
+          if (res.code === 0) {
+            ElMessage.success('successfully send friend request');
+          }
+        });
       }
     }
   );
@@ -123,6 +146,10 @@ const sendFriendReq = (userId: number) => {
       &__name {
         height: 32px;
         font-size: 18px;
+        &:hover {
+          cursor: pointer;
+          text-decoration: underline;
+        }
       }
       &__id {
         font-size: 14px;

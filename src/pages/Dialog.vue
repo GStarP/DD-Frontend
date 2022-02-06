@@ -118,7 +118,7 @@ for (let i = 0; i < 10; i++) {
   });
 }
 const store = useStore();
-const uid = computed(() => store.state.uid as number);
+const uid = computed(() => store.state.userInfo.uid as number);
 // TODO 缓存用户名
 const userName = (uid: number) => {
   return 'Feng Liu';

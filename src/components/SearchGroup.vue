@@ -58,7 +58,7 @@ import { useStore } from 'vuex';
 
 // uid
 const store = useStore();
-const uid = computed(() => store.state.uid as number);
+const uid = computed(() => store.state.userInfo.uid as number);
 
 // Input
 const searchKeyInput = ref('');
@@ -93,7 +93,7 @@ const joinGroup = (groupId: number) => {
           reason: data.value
         }).then((res) => {
           if (res.code === 0) {
-            ElMessage.success('successfully send join request');
+            ElMessage.success('successfully send group request');
           }
         });
       }

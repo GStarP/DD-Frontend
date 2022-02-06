@@ -46,7 +46,7 @@ import { useStore } from 'vuex';
 
 // uid
 const store = useStore();
-const uid = computed(() => store.state.uid as number);
+const uid = computed(() => store.state.userInfo.uid as number);
 
 /**
  * 顶部栏

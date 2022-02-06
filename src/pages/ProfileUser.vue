@@ -49,7 +49,10 @@
           </div>
         </div>
         <div class="user-profile__attr">
-          <span>Nickname</span>{{ userInfo.userName }}
+          <span>Username</span>{{ userInfo.userName }}
+        </div>
+        <div v-if="isSelf" class="user-profile__attr">
+          <span>Password</span>{{ userInfo.password }}
         </div>
         <div class="user-profile__attr">
           <span>Email</span>{{ userInfo.email }}
@@ -72,6 +75,10 @@
         <div class="edit-profile__attr">
           <span>Username</span>
           <el-input size="large" v-model="userInfoInput.userName"></el-input>
+        </div>
+        <div class="edit-profile__attr">
+          <span>Password</span>
+          <el-input size="large" v-model="userInfoInput.password"></el-input>
         </div>
         <div class="edit-profile__attr">
           <span>Email</span>
@@ -128,32 +135,49 @@ import { computed } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { ref, reactive } from 'vue';
 import { generateAvatarColor } from '@/utils/avatar';
+import {
+  reqApplyFriend,
+  reqBlackenFriend,
+  reqDeleteFriend,
+  reqGetUserInfo
+} from '@/api/friend';
 
 // 获取路由参数
 const route = useRoute();
 const userId = parseInt(route.params.id as string);
-// 获取用户信息
-let userInfo: UserInfo;
+
 // 判断当前查看的用户是否是自己
 const store = useStore();
-const isSelf = computed(() => store.state.uid === userId);
-// mock
-userInfo = {
-  userId: 1,
-  userName: 'Feng Liu',
-  email: 'fengliu@nju.com',
-  phone: '18762735835',
+const uid = computed(() => store.state.userInfo.uid as number);
+const isSelf = computed(() => store.state.userInfo.uid === userId);
+
+// 用户信息
+let userInfo = ref({
+  userId: 0,
+  userName: '',
+  password: '',
+  email: '',
+  phone: '',
   gender: 0,
-  age: 30,
-  isFriend: userId % 2 == 0,
-  isBlacked: userId % 3 == 0
-} as UserInfo;
+  age: 0,
+  isFriend: false,
+  isBlacked: false
+} as UserInfo);
+// 获取
+reqGetUserInfo(userId).then((res) => {
+  if (res.code === 0) {
+    userInfo.value = res.data;
+    userInfoInput.value = res.data;
+  }
+});
+
 /**
  * 顶部栏
  */
 const back = () => {
   router.back();
 };
+
 /**
  * 用户信息
  */
@@ -163,13 +187,13 @@ const reqEditProfile = () => {
 };
 // 编辑资料弹窗
 const editShow = ref(false);
-let userInfoInput = reactive(userInfo);
+let userInfoInput = ref(Object.assign({}, userInfo.value));
 // 被迫自定义愚蠢的下拉框
 const selectGender = (newVal: string) => {
   if (newVal === 'Man') {
-    userInfoInput.gender = 0;
+    userInfoInput.value.gender = 0;
   } else {
-    userInfoInput.gender = 1;
+    userInfoInput.value.gender = 1;
   }
   console.log(userInfoInput);
 };
@@ -183,7 +207,15 @@ const addFriend = () => {
   ElMessageBox.prompt('Input friend request reason', 'Friend Request').then(
     (data) => {
       if (data.value.length > 0) {
-        ElMessage.info(data.value);
+        reqApplyFriend({
+          userId: uid.value,
+          friendId: userId,
+          msg: data.value
+        }).then((res) => {
+          if (res.code === 0) {
+            ElMessage.success('successfully send friend request');
+          }
+        });
       }
     }
   );
@@ -191,27 +223,48 @@ const addFriend = () => {
 // 删除好友
 const delFriend = () => {
   ElMessageBox.confirm(
-    `Are you sure to delete your friend ${userInfo.userName}?`,
+    `Are you sure to delete your friend ${userInfo.value.userName}?`,
     'Delete Friend'
   ).then(() => {
-    ElMessage.info('deleted');
+    reqDeleteFriend({
+      userId: uid.value,
+      friendId: userId
+    }).then((res) => {
+      if (res.code === 0) {
+        ElMessage.success('friend deleted');
+      }
+    });
   });
 };
 // 拉黑/释放
 const blackenFriend = () => {
   ElMessageBox.confirm(
-    `Are you sure to send your friend ${userInfo.userName} to black list?`,
+    `Are you sure to send your friend ${userInfo.value.userName} to black list?`,
     'Blacken Friend'
   ).then(() => {
-    ElMessage.info('blacked');
+    reqBlackenFriend({
+      userId: uid.value,
+      friendId: userId
+    }).then((res) => {
+      if (res.code === 0) {
+        ElMessage.success('friend blackend');
+      }
+    });
   });
 };
 const unblackenFriend = () => {
   ElMessageBox.confirm(
-    `Are you sure to release your friend ${userInfo.userName} from black list?`,
+    `Are you sure to release your friend ${userInfo.value.userName} from black list?`,
     'Unblacken Friend'
   ).then(() => {
-    ElMessage.info('blacked');
+    reqBlackenFriend({
+      userId: uid.value,
+      friendId: userId
+    }).then((res) => {
+      if (res.code === 0) {
+        ElMessage.success('friend unblackend');
+      }
+    });
   });
 };
 </script>

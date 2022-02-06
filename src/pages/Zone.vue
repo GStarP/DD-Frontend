@@ -122,7 +122,7 @@ import type { UploadFile } from 'element-plus/es/components/upload/src/upload.ty
 
 // uid
 const store = useStore();
-const uid = computed(() => store.state.uid as number);
+const uid = computed(() => store.state.userInfo.uid as number);
 
 /**
  * 顶部栏

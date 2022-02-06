@@ -72,7 +72,7 @@
 import router from '@/plugins/router';
 import { useRoute } from 'vue-router';
 import { ArrowLeft, CircleClose } from '@element-plus/icons-vue';
-import { computed, reactive } from 'vue';
+import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { reqGroupInfo, reqQuitGroup } from '@/api/group';
@@ -84,27 +84,24 @@ const groupId = parseInt(route.params.id as string);
 
 // uid
 const store = useStore();
-const uid = computed(() => store.state.uid as number);
+const uid = computed(() => store.state.userInfo.uid as number);
 
 // 获取群组信息
-let groupInfo = reactive({
+let groupInfo = ref({
   groupId: -1,
   groupName: 'Loading...',
   members: []
 } as GroupInfo);
 reqGroupInfo(groupId).then((res) => {
   if (res.code === 0) {
-    // TODO 直接改变引用不会触发响应式
-    groupInfo.groupId = res.data.groupId;
-    groupInfo.groupName = res.data.groupName;
-    groupInfo.members = res.data.members;
+    groupInfo.value = res.data;
   }
 });
 
 // 判断用户是否为当前群群主
 const isGroupMaster = computed(() =>
-  groupInfo.members.length > 0
-    ? store.state.uid === groupInfo.members[0].userId
+  groupInfo.value.members.length > 0
+    ? store.state.userInfo.uid === groupInfo.value.members[0].userId
     : false
 );
 
@@ -123,7 +120,7 @@ const quitGroup = () => {
   const keyword = computed(() => (isGroupMaster.value ? 'dissolve' : 'quit'));
   const Keyword = computed(() => (isGroupMaster.value ? 'Dissolve' : 'Quit'));
   ElMessageBox.confirm(
-    `Are you sure to ${keyword.value} group ${groupInfo.groupName}?`,
+    `Are you sure to ${keyword.value} group ${groupInfo.value.groupName}?`,
     `${Keyword.value} Group`
   ).then(() => {
     reqQuitGroup({
@@ -131,7 +128,7 @@ const quitGroup = () => {
       groupId: groupId
     }).then((res) => {
       if (res.code === 0) {
-        ElMessage.success(`successfullt ${keyword.value}`);
+        ElMessage.success(`successfully ${keyword.value} group`);
         router.push({
           path: '/home'
         });

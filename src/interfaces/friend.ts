@@ -26,6 +26,7 @@ interface FriendRequest {
 interface UserInfo {
   userId: number;
   userName: string;
+  password: string;
   email: string;
   phone: string;
   gender: 0 | 1;

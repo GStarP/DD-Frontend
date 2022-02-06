@@ -2,11 +2,21 @@ import { createStore } from 'vuex';
 
 const store = createStore({
   state: {
-    uid: 0
+    userInfo: {
+      userId: 0,
+      userName: '',
+      password: '',
+      email: '',
+      phone: '',
+      gender: 0,
+      age: 0,
+      isFriend: false,
+      isBlacked: false
+    } as UserInfo
   },
   mutations: {
-    uid(state, userId: number) {
-      state.uid = userId;
+    userInfo(state, userInfo: UserInfo) {
+      state.userInfo = userInfo;
     }
   }
 });

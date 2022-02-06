@@ -5,11 +5,11 @@
         <el-avatar
           :size="32"
           :style="`font-size: 16px;background-color: ${generateAvatarColor(
-            nickname
+            userInfo.userName + ',' + userInfo.userId
           )}`"
-          >{{ nickname.substring(0, 1) }}</el-avatar
+          >{{ userInfo.userName.substring(0, 1) }}</el-avatar
         >
-        <div class="status-header__name">{{ nickname }}</div>
+        <div class="status-header__name">{{ userInfo.userName }}</div>
         <el-image
           class="status-header__zone"
           :src="zoneImg"
@@ -41,20 +41,20 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import zoneImg from '@/assets/zone.png';
 import ListFriend from '@/components/ListFriend.vue';
 import router from '@/plugins/router';
 import { generateAvatarColor } from '@/utils/avatar';
 import ListGroup from '@/components/ListGroup.vue';
+import { useStore } from 'vuex';
 
 /**
  * 侧边栏顶部状态条
  */
-const avatarImg =
-  'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png';
-const nickname = 'Dong Shao';
+const store = useStore();
+const userInfo = computed(() => store.state.userInfo as UserInfo);
 const toZone = () => {
   router.push({
     path: '/home/zone'

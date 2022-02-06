@@ -1,13 +1,4 @@
-// 好友列表中的好友信息
-interface FriendBrief {
-  friendId: number;
-  avatar: string;
-  name: string;
-  recentText: string;
-  recentTime: string;
-}
-
-// 查找好友中的用户信息
+// 用户简略信息
 interface UserBrief {
   userId: number;
   userName: string;

@@ -2,6 +2,18 @@ import axios from '@/plugins/axios';
 import { Res } from '@/interfaces/common';
 import { mockData } from '@/utils/mock';
 
+// 1.1 查看群组列表
+export async function reqListGroup(userId: number) {
+  const mock: GroupBrief[] = [];
+  for (let i = 0; i < 10; i++) {
+    mock.push({
+      groupId: i,
+      groupName: String.fromCharCode(65 + i) + 'CRUM 2022'
+    });
+  }
+  return mockData(mock);
+}
+
 // 1.2 查找群组
 export async function reqSearchGroup(searchKey: string) {
   const mock: GroupSearchBrief[] = [];

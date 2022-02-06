@@ -8,25 +8,25 @@
       <el-scrollbar class="friend-list">
         <div
           class="friend-item"
-          :class="{ 'friend-item-active': frd.friendId == 1 }"
+          :class="{ 'friend-item-active': frd.userId === curFriend }"
           v-for="frd in friendList"
-          :key="'frd' + frd.friendId"
-          @click="toFriendDialog(frd.friendId)"
+          :key="'frd' + frd.userId"
+          @click="toFriendDialog(frd.userId)"
         >
           <el-avatar
             class="friend-item__avatar"
             :size="44"
             :style="`font-size: 20px;background-color: ${generateAvatarColor(
-              frd.name
+              frd.userName
             )}`"
-            >{{ frd.name.substring(0, 1) }}</el-avatar
+            >{{ frd.userName.substring(0, 1) }}</el-avatar
           >
           <div class="friend-item__main">
             <div class="friend-item__top">
-              <div class="friend-item__name">{{ frd.name }}</div>
-              <div class="friend-item__recent-time">{{ frd.recentTime }}</div>
+              <div class="friend-item__name">{{ frd.userName }}</div>
+              <div class="friend-item__recent-time"></div>
             </div>
-            <div class="friend-item__recent-text">{{ frd.recentText }}</div>
+            <div class="friend-item__recent-text">no new message</div>
           </div>
         </div>
       </el-scrollbar>
@@ -38,6 +38,14 @@
 import router from '@/plugins/router';
 import { Plus } from '@element-plus/icons-vue';
 import { generateAvatarColor } from '@/utils/avatar';
+import { reqListFriend } from '@/api/friend';
+import { useStore } from 'vuex';
+import { computed, ref } from 'vue';
+
+// uid
+const store = useStore();
+const uid = computed(() => store.state.userInfo.userId as number);
+
 /**
  * 查找好友，处理好友申请的入口
  */
@@ -49,19 +57,18 @@ const toNewFriend = () =>
 /**
  * 好友列表
  */
-const friendList: FriendBrief[] = [];
-// mock
-for (let i = 0; i < 15; i++) {
-  friendList.push({
-    friendId: i,
-    avatar:
-      'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png',
-    name: String.fromCharCode(i + 65) + 'eng Liu',
-    recentText: 'did any students handle their homework?',
-    recentTime: 'Today 13:45'
-  });
-}
+const friendList = ref([] as UserInfo[]);
+// 获取全部好友
+reqListFriend(uid.value).then((res) => {
+  if (res.code === 0) {
+    friendList.value = res.data;
+    curFriend.value = friendList.value[0].userId;
+  }
+});
+// 查看对话
+const curFriend = ref(-1);
 const toFriendDialog = (uid: number) => {
+  curFriend.value = uid;
   router.push({
     path: `/home/dialog/f/${uid}`
   });

@@ -8,7 +8,7 @@
       <el-scrollbar class="group-list">
         <div
           class="group-item"
-          :class="{ 'group-item-active': grp.groupId == 1 }"
+          :class="{ 'group-item-active': grp.groupId == curGroup }"
           v-for="grp in groupList"
           :key="'grp' + grp.groupId"
           @click="toGroupDialog(grp.groupId)"
@@ -38,6 +38,14 @@
 import router from '@/plugins/router';
 import { Plus } from '@element-plus/icons-vue';
 import { generateAvatarColor } from '@/utils/avatar';
+import { computed, ref } from 'vue';
+import { reqListGroup } from '@/api/group';
+import { useStore } from 'vuex';
+
+// uid
+const store = useStore();
+const uid = computed(() => store.state.userInfo.userId as number);
+
 /**
  * 查找好友，处理好友申请的入口
  */
@@ -47,17 +55,21 @@ const toNewGroup = () =>
   });
 
 /**
- * 好友列表
+ * 群组列表
  */
-const groupList: GroupBrief[] = [];
-// mock
-for (let i = 0; i < 15; i++) {
-  groupList.push({
-    groupId: i,
-    groupName: String.fromCharCode(i + 65) + 'eng Liu'
-  });
-}
+const groupList = ref([] as GroupBrief[]);
+// 获取全部群组
+reqListGroup(uid.value).then((res) => {
+  if (res.code === 0) {
+    groupList.value = res.data;
+    curGroup.value = groupList.value[0].groupId;
+  }
+});
+// TODO 根据新消息重排序
+// 查看对话
+const curGroup = ref(-1);
 const toGroupDialog = (gid: number) => {
+  curGroup.value = gid;
   router.push({
     path: `/home/dialog/g/${gid}`
   });

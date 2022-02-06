@@ -97,3 +97,22 @@ export async function reqBlackenFriend(params: {
 }) {
   return mockData(null);
 }
+
+// 2.8 查看好友列表
+export async function reqListFriend(userId: number) {
+  const mock: UserInfo[] = [];
+  for (let i = 0; i < 10; i++) {
+    mock.push({
+      userId: i + 1,
+      userName: String.fromCharCode(69 + i) + 'eng Liu',
+      password: '',
+      email: '',
+      phone: '',
+      gender: 0,
+      age: 0,
+      isFriend: false,
+      isBlacked: false
+    });
+  }
+  return mockData(mock);
+}

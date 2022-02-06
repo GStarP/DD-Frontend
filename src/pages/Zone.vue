@@ -6,7 +6,7 @@
       /></el-icon>
       <div class="zone-title">Zone</div>
       <div class="zone-actions">
-        <el-icon class="zone-post" :size="32" @click="reqPostBlog"
+        <el-icon class="zone-post" :size="32" @click="postBlog"
           ><CirclePlus
         /></el-icon>
         <!-- 发表动态弹窗 -->
@@ -42,7 +42,11 @@
     </div>
     <div class="zone__main">
       <el-scrollbar class="zone-blog-list">
-        <div class="blog" v-for="b in blogList" :key="'blog' + b.blogId">
+        <div
+          class="blog"
+          v-for="(b, index) in blogList"
+          :key="'blog' + b.blogId"
+        >
           <div>
             <div class="blog__header">
               <el-avatar
@@ -66,13 +70,13 @@
             </div>
             <div class="blog__main">
               <div class="blog-text">{{ b.context }}</div>
-              <div class="blog-img" v-if="b.picture !== ''"></div>
+              <div class="blog-img" v-if="b.pics.length > 0"></div>
             </div>
             <div class="blog__footer">
               <el-icon
                 :size="b.liked ? 33 : 28"
                 :color="b.liked ? '#409eff' : ''"
-                @click="like(b.blogId)"
+                @click="like(index)"
               >
                 <template v-if="!b.liked">
                   <star />
@@ -81,19 +85,27 @@
                   <star-filled />
                 </template>
               </el-icon>
-              <el-icon :size="26" @click="reqComment(b.blogId)"
+              <div class="blog-like-num">{{ b.likes }}</div>
+              <el-icon :size="26" @click="reqComment(index)"
                 ><chat-round
               /></el-icon>
             </div>
-            <el-divider></el-divider>
-            <div class="blog__comments">
+            <el-divider v-if="b.comments.length > 0"></el-divider>
+            <div class="blog__comments" v-if="b.comments.length > 0">
               <div
                 class="blog-comment"
-                v-for="c in b.comments"
+                v-for="(c, commentIndex) in b.comments"
                 :key="b.blogId + 'comment' + c.commentId"
               >
                 <div class="blog-comment__user">{{ c.userName }}:</div>
                 <div class="blog-comment__text">{{ c.context }}</div>
+                <div
+                  v-if="uid === c.userId"
+                  class="blog-comment__delete"
+                  @click="delComment(index, commentIndex)"
+                >
+                  Delete
+                </div>
               </div>
             </div>
           </div>
@@ -119,10 +131,19 @@ import { useStore } from 'vuex';
 import { computed } from 'vue';
 import { ref } from 'vue';
 import type { UploadFile } from 'element-plus/es/components/upload/src/upload.type';
+import {
+  reqDeleteBlog,
+  reqDeleteComment,
+  reqDislikeBlog,
+  reqLikeBlog,
+  reqListBlog,
+  reqPostBlog,
+  reqPostComment
+} from '@/api/blog';
 
 // uid
 const store = useStore();
-const uid = computed(() => store.state.userInfo.uid as number);
+const uid = computed(() => store.state.userInfo.userId as number);
 
 /**
  * 顶部栏
@@ -135,7 +156,7 @@ const back = () => {
 };
 // 请求发表动态
 const postBlogShow = ref(false);
-const reqPostBlog = () => {
+const postBlog = () => {
   postBlogShow.value = true;
 };
 // 发表动态弹窗
@@ -147,62 +168,104 @@ const onPitcuresChange = (file: UploadFile, list: UploadFile[]) => {
 };
 const submitPostBlog = () => {
   if (newBlogTextInput.value.length > 0) {
-    ElMessage.info(newBlogTextInput.value);
+    reqPostBlog({
+      userId: uid.value,
+      timestamp: 0,
+      context: newBlogTextInput.value,
+      pics: []
+    }).then((res) => {
+      if (res.code === 0) {
+        ElMessage.success('new blog posted');
+        fetchBlogList();
+      }
+    });
     postBlogShow.value = false;
   }
 };
+
 /**
  * 空间主体
  */
 // 动态列表
-const blogList: Blog[] = [];
-// mock
-for (let i = 0; i < 10; i++) {
-  blogList.push({
-    blogId: i,
-    userId: i % 2,
-    userName: 'Qin Liu',
-    userAvatar:
-      'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png',
-    timestamp: 'yesterday 13:45',
-    context:
-      'xxxxx xxxxxxx xx xxx xxxx xxxxxx xxxxxxxx xxxxx xxxxxx xxxxxxxxxxxx xxxx xxxxxxxx xxxxx xxxx xxxxxxx xxx xxxxxx',
-    picture: '',
-    liked: i % 2 == 0,
-    comments: [
-      {
-        commentId: i * 2,
-        userName: 'Tongwei Ren',
-        timestamp: 'today 08:00',
-        context: 'SEECoder is a wonderful platform'
-      },
-      {
-        commentId: i * 2 + 1,
-        userName: 'Tongwei Ren',
-        timestamp: 'today 08:00',
-        context: 'SEECoder is a wonderful platform'
-      }
-    ]
+const blogList = ref([] as Blog[]);
+// 获取动态
+const fetchBlogList = () => {
+  reqListBlog(uid.value).then((res) => {
+    if (res.code === 0) {
+      blogList.value = res.data;
+    }
   });
-}
+};
+fetchBlogList();
+
 // 删除动态
 const delBlog = (bid: number) => {
   ElMessageBox.confirm('Are you sure to delete this blog?', 'Delete Blog').then(
     () => {
-      ElMessage.info('deleted');
+      reqDeleteBlog(bid).then((res) => {
+        if (res.code === 0) {
+          ElMessage.success('deleted blog');
+          fetchBlogList();
+        }
+      });
     }
   );
 };
-// 点赞
-const like = (bid: number) => {
-  ElMessage.info('like');
+/* 只影响到单条动态局部内容的操作在客户端直接更新，而不刷新全部动态 */
+// 点赞/取消点赞
+const like = (index: number) => {
+  if (blogList.value[index].liked) {
+    reqDislikeBlog({
+      userId: uid.value,
+      blogId: blogList.value[index].blogId
+    }).then((res) => {
+      if (res.code === 0) {
+        blogList.value[index].liked = false;
+        blogList.value[index].likes--;
+      }
+    });
+  } else {
+    reqLikeBlog({
+      userId: uid.value,
+      blogId: blogList.value[index].blogId
+    }).then((res) => {
+      if (res.code === 0) {
+        blogList.value[index].liked = true;
+        blogList.value[index].likes++;
+      }
+    });
+  }
 };
 // 请求评论
-const reqComment = (bid: number) => {
+const reqComment = (index: number) => {
   ElMessageBox.prompt('Write down your comment', 'Comment').then((data) => {
-    if (data.length > 0) {
-      ElMessage.info(data.value);
+    if (data.value.length > 0) {
+      reqPostComment({
+        userId: uid.value,
+        blogId: blogList.value[index].blogId,
+        context: data.value
+      }).then((res) => {
+        if (res.code === 0) {
+          blogList.value[index].comments.push(res.data);
+        }
+      });
     }
+  });
+};
+// 删除评论
+const delComment = (index: number, commentIndex: number) => {
+  ElMessageBox.confirm(
+    'Are you sure to delete this comment?',
+    'Delete Comment'
+  ).then(() => {
+    reqDeleteComment({
+      userId: uid.value,
+      commentId: blogList.value[index].comments[commentIndex].commentId
+    }).then((res) => {
+      if (res.code === 0) {
+        blogList.value[index].comments.splice(commentIndex, 1);
+      }
+    });
   });
 };
 </script>
@@ -310,6 +373,7 @@ const reqComment = (bid: number) => {
       margin-top: 8px;
     }
     &__footer {
+      height: 36px;
       margin-top: 8px;
       display: flex;
       flex-direction: row;
@@ -322,6 +386,13 @@ const reqComment = (bid: number) => {
         cursor: pointer;
         color: #409eff;
       }
+    }
+    &-like-num {
+      font-weight: 300;
+      font-size: 18px;
+      margin-top: 4px;
+      margin-left: 2px;
+      user-select: none;
     }
     .el-divider--horizontal {
       margin: 16px 0;
@@ -342,6 +413,15 @@ const reqComment = (bid: number) => {
       }
       &__text {
         margin-left: 6px;
+      }
+      &__delete {
+        margin-left: auto;
+        font-size: 12px;
+        color: #909399;
+        &:hover {
+          cursor: pointer;
+          text-decoration: underline;
+        }
       }
     }
   }

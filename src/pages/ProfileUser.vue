@@ -148,8 +148,8 @@ const userId = parseInt(route.params.id as string);
 
 // 判断当前查看的用户是否是自己
 const store = useStore();
-const uid = computed(() => store.state.userInfo.uid as number);
-const isSelf = computed(() => store.state.userInfo.uid === userId);
+const uid = computed(() => store.state.userInfo.userId as number);
+const isSelf = computed(() => store.state.userInfo.userId === userId);
 
 // 用户信息
 let userInfo = ref({

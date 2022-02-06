@@ -56,7 +56,7 @@ import { GroupRequestHandleType } from '@/api/group';
 
 // uid
 const store = useStore();
-const uid = computed(() => store.state.userInfo.uid as number);
+const uid = computed(() => store.state.userInfo.userId as number);
 
 // 查看加群请求
 const groupRequests = ref([] as GroupRequest[]);

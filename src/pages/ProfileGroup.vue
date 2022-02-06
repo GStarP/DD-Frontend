@@ -84,7 +84,7 @@ const groupId = parseInt(route.params.id as string);
 
 // uid
 const store = useStore();
-const uid = computed(() => store.state.userInfo.uid as number);
+const uid = computed(() => store.state.userInfo.userId as number);
 
 // 获取群组信息
 let groupInfo = ref({
@@ -101,7 +101,7 @@ reqGroupInfo(groupId).then((res) => {
 // 判断用户是否为当前群群主
 const isGroupMaster = computed(() =>
   groupInfo.value.members.length > 0
-    ? store.state.userInfo.uid === groupInfo.value.members[0].userId
+    ? store.state.userInfo.userId === groupInfo.value.members[0].userId
     : false
 );
 

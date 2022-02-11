@@ -76,10 +76,6 @@ const createGroup = () => {
         }).then((res) => {
           if (res.code === 0) {
             ElMessage.success('new group created');
-            // TODO 实际效果可能不好
-            router.push({
-              path: `/home/dialog/g/${res.data}`
-            });
           }
         });
       }

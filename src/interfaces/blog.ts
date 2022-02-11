@@ -1,18 +1,19 @@
 interface BlogComment {
-  commentId: number;
+  commentId: string;
   context: string;
-  userId: number;
+  userId: string;
   userName: string;
-  timestamp: string;
 }
 
 interface Blog {
-  blogId: number;
-  userId: number;
+  blogId: string;
+  userId: string;
   userName: string;
+  ownerId: string;
+  ownerName: string;
   timestamp: string;
   context: string;
-  pics: [];
+  pics: string[];
   comments: BlogComment[];
   likes: number;
   liked: boolean;

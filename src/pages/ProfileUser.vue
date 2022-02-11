@@ -15,7 +15,7 @@
           <el-avatar
             class="user-profile-avatar"
             :style="`font-size: 24px;background-color: ${generateAvatarColor(
-              userInfo.userName
+              userInfo.userName + ',' + userInfo.userId
             )}`"
             >{{ userInfo.userName.substring(0, 1) }}</el-avatar
           >
@@ -24,11 +24,11 @@
             <div class="user-profile-id">ID: {{ userInfo.userId }}</div>
           </div>
           <div class="user-profile__actions">
-            <el-icon v-if="isSelf" :size="32" @click="reqEditProfile"
+            <el-icon v-if="isSelf" :size="32" @click="editProfile"
               ><edit
             /></el-icon>
             <template v-else>
-              <template v-if="!userInfo.isFriend">
+              <template v-if="!userInfo.friend">
                 <el-icon :size="32" @click="addFriend"><CirclePlus /></el-icon>
               </template>
               <template v-else>
@@ -36,7 +36,7 @@
                   ><Delete
                 /></el-icon>
                 <el-icon
-                  v-if="userInfo.isBlacked"
+                  v-if="userInfo.blacked"
                   :size="32"
                   @click="unblackenFriend"
                   ><CircleCheck
@@ -51,9 +51,9 @@
         <div class="user-profile__attr">
           <span>Username</span>{{ userInfo.userName }}
         </div>
-        <div v-if="isSelf" class="user-profile__attr">
+        <!-- <div v-if="isSelf" class="user-profile__attr">
           <span>Password</span>{{ userInfo.password }}
-        </div>
+        </div> -->
         <div class="user-profile__attr">
           <span>Email</span>{{ userInfo.email }}
         </div>
@@ -76,10 +76,10 @@
           <span>Username</span>
           <el-input size="large" v-model="userInfoInput.userName"></el-input>
         </div>
-        <div class="edit-profile__attr">
+        <!-- <div class="edit-profile__attr">
           <span>Password</span>
           <el-input size="large" v-model="userInfoInput.password"></el-input>
-        </div>
+        </div> -->
         <div class="edit-profile__attr">
           <span>Email</span>
           <el-input size="large" v-model="userInfoInput.email"></el-input>
@@ -139,7 +139,9 @@ import {
   reqApplyFriend,
   reqBlackenFriend,
   reqDeleteFriend,
-  reqGetUserInfo
+  reqEditUserInfo,
+  reqGetUserInfo,
+  reqUnblackenFriend
 } from '@/api/friend';
 
 // 获取路由参数
@@ -160,11 +162,11 @@ let userInfo = ref({
   phone: '',
   gender: 0,
   age: 0,
-  isFriend: false,
-  isBlacked: false
+  friend: false,
+  blacked: false
 } as UserInfo);
 // 获取
-reqGetUserInfo(userId).then((res) => {
+reqGetUserInfo(userId, uid.value).then((res) => {
   if (res.code === 0) {
     userInfo.value = res.data;
     userInfoInput.value = res.data;
@@ -182,7 +184,7 @@ const back = () => {
  * 用户信息
  */
 // 编辑资料
-const reqEditProfile = () => {
+const editProfile = () => {
   editShow.value = true;
 };
 // 编辑资料弹窗
@@ -199,8 +201,19 @@ const selectGender = (newVal: string) => {
 };
 // 提交资料编辑
 const submitEditProfile = () => {
-  ElMessage.info(JSON.stringify(userInfoInput));
-  editShow.value = false;
+  reqEditUserInfo({
+    userId: '' + userId,
+    userName: userInfoInput.value.userName,
+    email: userInfoInput.value.email,
+    phone: userInfoInput.value.phone,
+    age: userInfoInput.value.age,
+    gender: userInfoInput.value.gender
+  }).then((res) => {
+    if (res.code === 0) {
+      ElMessage.success('profile changed');
+    }
+    editShow.value = false;
+  });
 };
 // 添加好友
 const addFriend = () => {
@@ -238,6 +251,8 @@ const delFriend = () => {
 };
 // 拉黑/释放
 const blackenFriend = () => {
+  ElMessage.info('to be continued');
+  return;
   ElMessageBox.confirm(
     `Are you sure to send your friend ${userInfo.value.userName} to black list?`,
     'Blacken Friend'
@@ -253,11 +268,13 @@ const blackenFriend = () => {
   });
 };
 const unblackenFriend = () => {
+  ElMessage.info('to be continued');
+  return;
   ElMessageBox.confirm(
     `Are you sure to release your friend ${userInfo.value.userName} from black list?`,
     'Unblacken Friend'
   ).then(() => {
-    reqBlackenFriend({
+    reqUnblackenFriend({
       userId: uid.value,
       friendId: userId
     }).then((res) => {

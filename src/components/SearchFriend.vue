@@ -18,7 +18,7 @@
           <el-avatar
             class="user-brief__avatar"
             :style="`font-size: 24px;background-color: ${generateAvatarColor(
-              u.userName
+              u.userName + ',' + u.userId
             )}`"
             >{{ u.userName.substring(0, 1) }}</el-avatar
           >
@@ -30,7 +30,7 @@
           </div>
           <div class="user-brief__action">
             <el-button
-              v-if="!u.isFriend"
+              v-if="!u.friend"
               type="primary"
               size="large"
               round
@@ -66,7 +66,7 @@ const searchFriend = () => {
   if (searchInput.value.length < 1) {
     ElMessage.error('search key cannot be empty');
   } else {
-    reqSearchUserById(parseInt(searchInput.value)).then((res) => {
+    reqSearchUserById(searchInput.value, uid.value).then((res) => {
       if (res.code === 0) {
         searchRes.value = [res.data];
       }

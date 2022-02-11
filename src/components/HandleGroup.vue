@@ -4,20 +4,20 @@
       <el-scrollbar v-if="groupRequests.length > 0">
         <div
           v-for="g in groupRequests"
-          :key="'handle' + 'g' + g.requestId"
+          :key="'handle' + 'g' + g.groupRequestId"
           class="group-request"
         >
           <el-avatar
             class="group-request__avatar"
             :style="`font-size: 24px;background-color: ${generateAvatarColor(
-              g.user.userName
+              g.user.userName + ',' + g.user.userId
             )}`"
             >{{ g.user.userName.substring(0, 1) }}</el-avatar
           >
           <div class="group-request__main">
             <div class="group-request__info">
               <div class="group-request__user">{{ g.user.userName }}</div>
-              <span>join</span>
+              <span>want to join</span>
               <div class="group-request__group">{{ g.group.groupName }}</div>
             </div>
             <div class="group-request__desc">{{ g.reason }}</div>
@@ -27,13 +27,13 @@
               circle
               :icon="Select"
               type="success"
-              @click="accept(g.requestId)"
+              @click="accept(g.groupRequestId)"
             ></el-button>
             <el-button
               circle
               :icon="CloseBold"
               type="danger"
-              @click="refuse(g.requestId)"
+              @click="refuse(g.groupRequestId)"
             ></el-button>
           </div>
         </div>

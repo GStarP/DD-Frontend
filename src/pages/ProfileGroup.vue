@@ -188,7 +188,7 @@ const quitGroup = () => {
     &__main {
       display: flex;
       flex-direction: row;
-      margin-bottom: 16px;
+      margin-bottom: 32px;
     }
     &-info {
       margin-left: 16px;

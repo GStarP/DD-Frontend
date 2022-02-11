@@ -41,6 +41,9 @@
       </div>
     </div>
     <div class="zone__main">
+      <div class="no-blog" v-if="blogList.length < 1">
+        Empty Zone
+      </div>
       <el-scrollbar class="zone-blog-list">
         <div
           class="blog"
@@ -57,14 +60,19 @@
                 >{{ b.userName.substring(0, 1) }}</el-avatar
               >
               <div class="blog-poster">
-                <div class="blog-poster-name">{{ b.userName }}</div>
+                <div
+                  class="blog-poster-name"
+                  @click="toUserProfile(parseInt(b.userId))"
+                >
+                  {{ b.userName }}
+                </div>
                 <div class="blog-poster-time">{{ b.timestamp }}</div>
               </div>
               <el-button
-                v-if="uid === b.userId"
+                v-if="uid === parseInt(b.userId)"
                 type="text"
                 class="blog-delete"
-                @click="delBlog(b.blogId)"
+                @click="delBlog(parseInt(b.blogId))"
                 >Delete</el-button
               >
             </div>
@@ -100,7 +108,7 @@
                 <div class="blog-comment__user">{{ c.userName }}:</div>
                 <div class="blog-comment__text">{{ c.context }}</div>
                 <div
-                  v-if="uid === c.userId"
+                  v-if="uid === parseInt(c.userId)"
                   class="blog-comment__delete"
                   @click="delComment(index, commentIndex)"
                 >
@@ -169,8 +177,7 @@ const onPitcuresChange = (file: UploadFile, list: UploadFile[]) => {
 const submitPostBlog = () => {
   if (newBlogTextInput.value.length > 0) {
     reqPostBlog({
-      userId: uid.value,
-      timestamp: 0,
+      userId: '' + uid.value,
       context: newBlogTextInput.value,
       pics: []
     }).then((res) => {
@@ -197,7 +204,12 @@ const fetchBlogList = () => {
   });
 };
 fetchBlogList();
-
+// 跳转用户主页
+const toUserProfile = (userId: number) => {
+  router.push({
+    path: `/home/profile/f/${userId}`
+  });
+};
 // 删除动态
 const delBlog = (bid: number) => {
   ElMessageBox.confirm('Are you sure to delete this blog?', 'Delete Blog').then(
@@ -217,7 +229,7 @@ const like = (index: number) => {
   if (blogList.value[index].liked) {
     reqDislikeBlog({
       userId: uid.value,
-      blogId: blogList.value[index].blogId
+      blogId: parseInt(blogList.value[index].blogId)
     }).then((res) => {
       if (res.code === 0) {
         blogList.value[index].liked = false;
@@ -227,7 +239,7 @@ const like = (index: number) => {
   } else {
     reqLikeBlog({
       userId: uid.value,
-      blogId: blogList.value[index].blogId
+      blogId: parseInt(blogList.value[index].blogId)
     }).then((res) => {
       if (res.code === 0) {
         blogList.value[index].liked = true;
@@ -242,10 +254,11 @@ const reqComment = (index: number) => {
     if (data.value.length > 0) {
       reqPostComment({
         userId: uid.value,
-        blogId: blogList.value[index].blogId,
+        blogId: parseInt(blogList.value[index].blogId),
         context: data.value
       }).then((res) => {
         if (res.code === 0) {
+          res.data.userName = store.state.userInfo.userName;
           blogList.value[index].comments.push(res.data);
         }
       });
@@ -260,7 +273,9 @@ const delComment = (index: number, commentIndex: number) => {
   ).then(() => {
     reqDeleteComment({
       userId: uid.value,
-      commentId: blogList.value[index].comments[commentIndex].commentId
+      commentId: parseInt(
+        blogList.value[index].comments[commentIndex].commentId
+      )
     }).then((res) => {
       if (res.code === 0) {
         blogList.value[index].comments.splice(commentIndex, 1);
@@ -319,6 +334,19 @@ const delComment = (index: number, commentIndex: number) => {
     height: 100%;
     position: relative;
   }
+  .no-blog {
+    position: absolute;
+    background-color: #ebeef5;
+    width: 100%;
+    top: 35%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 36px;
+    font-weight: 300;
+    user-select: none;
+    z-index: 1;
+  }
   &-blog-list {
     position: absolute;
     width: 100%;
@@ -359,6 +387,10 @@ const delComment = (index: number, commentIndex: number) => {
       &-name {
         font-size: 18px;
         height: 30px;
+        &:hover {
+          cursor: pointer;
+          text-decoration: underline;
+        }
       }
       &-time {
         font-size: 14px;
@@ -370,7 +402,9 @@ const delComment = (index: number, commentIndex: number) => {
       color: #909399;
     }
     &-text {
-      margin-top: 8px;
+      margin-top: 16px;
+      font-size: 18px;
+      line-height: 28px;
     }
     &__footer {
       height: 36px;

@@ -58,9 +58,21 @@ const passwordInput = ref('');
 const toSignInPage = () => {
   router.push({ path: '/sign-in' });
 };
+const signUpToSignIn = (userId: number) => {
+  router.push({
+    path: '/sign-in',
+    query: {
+      u: '' + userId
+    }
+  });
+};
 // 确认注册
 const confirmSignUp = () => {
-  if (passwordInput.value.length < 6) {
+  if (emailInput.value.length < 1) {
+    ElMessage.error('please input email');
+  } else if (usernameInput.value.length < 1) {
+    ElMessage.error('please input username');
+  } else if (passwordInput.value.length < 6) {
     ElMessage.error('password length must be over 6');
   } else {
     reqSignUpWithEmail({
@@ -70,7 +82,7 @@ const confirmSignUp = () => {
     }).then((res) => {
       if (res.code === 0) {
         ElMessage.success('signed up');
-        setTimeout(() => toSignInPage(), 500);
+        setTimeout(() => signUpToSignIn(res.data), 500);
       }
     });
   }

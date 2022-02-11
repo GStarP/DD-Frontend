@@ -3,30 +3,44 @@
     <div class="new-friend" @click="toNewFriend">
       <el-icon><plus /></el-icon>
       <div>New Friend</div>
+      <el-icon
+        :size="18"
+        class="list-friend-refresh"
+        @click.stop="fetchFriendList"
+        ><refresh
+      /></el-icon>
     </div>
     <div class="friend-list-container">
       <el-scrollbar class="friend-list">
         <div
           class="friend-item"
-          :class="{ 'friend-item-active': frd.userId === curFriend }"
-          v-for="frd in friendList"
-          :key="'frd' + frd.userId"
-          @click="toFriendDialog(frd.userId)"
+          :class="{ 'friend-item-active': frd.friendId === curFriend }"
+          v-for="(frd, index) in friendList"
+          :key="'frd' + frd.friendId"
+          @click="toFriendDialog(frd.friendId, frd.nickname, index)"
         >
           <el-avatar
             class="friend-item__avatar"
             :size="44"
             :style="`font-size: 20px;background-color: ${generateAvatarColor(
-              frd.userName
+              frd.nickname + ',' + frd.friendId
             )}`"
-            >{{ frd.userName.substring(0, 1) }}</el-avatar
+            >{{ frd.nickname.substring(0, 1) }}</el-avatar
           >
           <div class="friend-item__main">
             <div class="friend-item__top">
-              <div class="friend-item__name">{{ frd.userName }}</div>
-              <div class="friend-item__recent-time"></div>
+              <div class="friend-item__name">{{ frd.nickname }}</div>
+              <div class="friend-item__recent-time">{{ frd.msgTime }}</div>
             </div>
-            <div class="friend-item__recent-text">no new message</div>
+            <div class="friend-item__bottom">
+              <div class="friend-item__recent-text">{{ frd.msg }}</div>
+              <div
+                :style="{ visibility: frd.msgNum < 1 ? 'hidden' : 'visible' }"
+                class="friend-item__recent-num"
+              >
+                {{ frd.msgNum }}
+              </div>
+            </div>
           </div>
         </div>
       </el-scrollbar>
@@ -36,11 +50,12 @@
 
 <script lang="ts" setup>
 import router from '@/plugins/router';
-import { Plus } from '@element-plus/icons-vue';
+import { Plus, Refresh } from '@element-plus/icons-vue';
 import { generateAvatarColor } from '@/utils/avatar';
 import { reqListFriend } from '@/api/friend';
 import { useStore } from 'vuex';
 import { computed, ref } from 'vue';
+import { usnCache } from '@/utils/cache';
 
 // uid
 const store = useStore();
@@ -57,20 +72,41 @@ const toNewFriend = () =>
 /**
  * 好友列表
  */
-const friendList = ref([] as UserInfo[]);
+const friendList = computed(
+  () => store.state.friendList as FriendBriefWithMsg[]
+);
 // 获取全部好友
-reqListFriend(uid.value).then((res) => {
-  if (res.code === 0) {
-    friendList.value = res.data;
-    curFriend.value = friendList.value[0].userId;
-  }
-});
+const fetchFriendList = () => {
+  reqListFriend(uid.value).then((res) => {
+    if (res.code === 0) {
+      store.commit(
+        'friendList',
+        res.data.map((fb) => {
+          return {
+            ...fb,
+            msg: 'no new message',
+            msgTime: '',
+            msgNum: 0
+          } as FriendBriefWithMsg;
+        })
+      );
+      for (const f of friendList.value) {
+        usnCache(f.friendId, f.nickname);
+      }
+      curFriend.value = -1;
+    }
+  });
+};
+fetchFriendList();
+
 // 查看对话
 const curFriend = ref(-1);
-const toFriendDialog = (uid: number) => {
+const toFriendDialog = (uid: number, userName: string, index: number) => {
+  // 查看对话时清零所有未读消息数
+  store.commit('clearUnread', index);
   curFriend.value = uid;
   router.push({
-    path: `/home/dialog/f/${uid}`
+    path: `/home/dialog/f/${uid}/${userName}`
   });
 };
 </script>
@@ -98,6 +134,19 @@ const toFriendDialog = (uid: number) => {
     &:hover {
       cursor: pointer;
       background-color: #dcdfe6;
+    }
+  }
+  &-refresh {
+    transition: transform 0.5s;
+    margin-left: auto;
+    background-color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid #909399;
+    &:hover {
+      cursor: pointer;
+      transform: rotate(180deg);
     }
   }
   .friend-list-container {
@@ -137,21 +186,36 @@ const toFriendDialog = (uid: number) => {
     &__name {
       font-size: 16px;
     }
+    &__recent-time {
+      margin-left: auto;
+      font-size: 12px;
+      color: #909399;
+    }
+    &__bottom {
+      display: flex;
+      flex-direction: row;
+      flex: 1;
+    }
     &__recent-text {
       font-size: 13px;
       color: #909399;
       height: 44px - 24px;
 
-      width: 360px - 16px * 2 - 44px - 12px;
+      width: 360px - 16px * 2 - 44px - 12px - 24px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
       word-wrap: normal;
     }
-    &__recent-time {
-      margin-left: auto;
+    &__recent-num {
+      width: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       font-size: 12px;
-      color: #909399;
+      border-radius: 4px;
+      background-color: #f56c6c;
+      color: #fff;
     }
   }
 }

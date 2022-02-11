@@ -51,11 +51,21 @@ import githubIcon from '@/assets/github.png';
 import { ElMessage } from 'element-plus';
 import { reqSignIn } from '@/api/friend';
 import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
+import { usnCache } from '@/utils/cache';
+
+// 获取路由中带上的 userId
+const route = useRoute();
+let userId = '';
+const uidStr = route.query.u as string;
+if (uidStr !== '') {
+  userId = uidStr;
+}
 
 const store = useStore();
 
 // 登录表单
-const userIdInput = ref('');
+const userIdInput = ref(userId);
 const passwordInput = ref('');
 // 去注册
 const toSignUpPage = () => {
@@ -74,6 +84,7 @@ const confirmSignIn = () => {
     }).then((res) => {
       if (res.code === 0) {
         store.commit('userInfo', res.data);
+        usnCache(res.data.userId, res.data.userName);
         ElMessage.success('signed in');
         router.push({
           path: '/home'

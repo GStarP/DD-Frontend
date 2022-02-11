@@ -1,58 +1,46 @@
 import { mockData, mockLoadingData } from '@/utils/mock';
+import axios from '@/plugins/axios';
+import { Res } from '@/interfaces/common';
 
 // 3.1 查看空间
 export async function reqListBlog(userId: number) {
-  const mock: Blog[] = [];
-  for (let i = 0; i < 10; i++) {
-    mock.push({
-      blogId: i,
-      userId: i % 2,
-      userName: 'Qin Liu',
-      timestamp: 'yesterday 13:45',
-      context:
-        'xxxxx xxxxxxx xx xxx xxxx xxxxxx xxxxxxxx xxxxx xxxxxx xxxxxxxxxxxx xxxx xxxxxxxx xxxxx xxxx xxxxxxx xxx xxxxxx',
-      pics: [],
-      liked: i % 2 == 0,
-      likes: 10 + i,
-      comments: [
-        {
-          commentId: i * 2,
-          userId: 0,
-          userName: 'Tongwei Ren',
-          timestamp: 'today 08:00',
-          context: 'SEECoder is a wonderful platform'
-        },
-        {
-          commentId: i * 2 + 1,
-          userId: 1,
-          userName: 'Tongwei Ren',
-          timestamp: 'today 08:00',
-          context: 'SEECoder is a wonderful platform'
-        }
-      ]
-    });
-  }
-  return mockLoadingData(mock, 1);
+  const { data } = await axios.get<Res<Blog[]>>('/space/list', {
+    params: {
+      userId: '' + userId
+    }
+  });
+  return data;
 }
 
 // 3.3 删除动态
 export async function reqDeleteBlog(blogId: number) {
-  return mockData(null);
+  const { data } = await axios.post<Res<null>>('/space/delete', null, {
+    params: {
+      blogId: '' + blogId
+    }
+  });
+  return data;
 }
 
 // 3.4 发表动态
 export async function reqPostBlog(params: {
-  userId: number;
-  timestamp: number;
+  userId: string;
   context: string;
-  pics: [];
+  pics: string[];
 }) {
-  return mockData(null);
+  const { data } = await axios.post<Res<null>>('/space/add', params);
+  return data;
 }
 
 // 3.5 点赞动态
 export async function reqLikeBlog(params: { userId: number; blogId: number }) {
-  return mockData(null);
+  const { data } = await axios.post<Res<null>>('/space/like', null, {
+    params: {
+      userId: '' + params.userId,
+      blogId: '' + params.blogId
+    }
+  });
+  return data;
 }
 
 // 3.8 取消喜欢
@@ -60,7 +48,13 @@ export async function reqDislikeBlog(params: {
   userId: number;
   blogId: number;
 }) {
-  return mockData(null);
+  const { data } = await axios.post<Res<null>>('/space/dislike', null, {
+    params: {
+      userId: '' + params.userId,
+      blogId: '' + params.blogId
+    }
+  });
+  return data;
 }
 
 // 3.7 发表评论
@@ -69,14 +63,14 @@ export async function reqPostComment(params: {
   blogId: number;
   context: string;
 }) {
-  const mock: BlogComment = {
-    commentId: 1,
-    context: 'xxxxxxxxx xxxxx xxxxxx',
-    userId: 0,
-    userName: 'Feng Liu',
-    timestamp: ''
-  };
-  return mockData(mock);
+  const { data } = await axios.post<Res<BlogComment>>('/space/comment', null, {
+    params: {
+      userId: '' + params.userId,
+      blogId: '' + params.blogId,
+      context: '' + params.context
+    }
+  });
+  return data;
 }
 
 // 3.9 删除评论
@@ -84,5 +78,10 @@ export async function reqDeleteComment(params: {
   userId: number;
   commentId: number;
 }) {
-  return mockData(null);
+  const { data } = await axios.post<Res<null>>('/space/deleteComment', null, {
+    params: {
+      commentId: '' + params.commentId
+    }
+  });
+  return data;
 }

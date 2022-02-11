@@ -5,9 +5,15 @@
         ><ArrowLeft
       /></el-icon>
       <div class="dialog-title">
-        {{ type === 'f' ? userBrief.userName : groupBrief.groupName }}
+        {{ name }}
       </div>
-      <el-icon class="dialog-profile" :size="32" @click="toProfile"
+      <el-icon
+        :style="{
+          visibility: id === 9999 ? 'hidden' : ''
+        }"
+        class="dialog-profile"
+        :size="32"
+        @click="toProfile"
         ><UserFilled
       /></el-icon>
     </div>
@@ -20,30 +26,34 @@
               message__self: m.sender === uid
             }"
             v-for="m in messages"
-            :key="`s${m.sender}r${m.receiver}t${m.time}`"
+            :key="`s${m.sender}r${m.receiver}t${m.timestamp}`"
           >
             <el-avatar
               class="message-avatar"
               :size="48"
               :style="`font-size: 20px;background-color: ${generateAvatarColor(
-                userName(m.sender)
+                usn(m.sender) + ',' + m.sender
               )}`"
-              >{{ userName(m.sender).substring(0, 1) }}</el-avatar
+              >{{ usn(m.sender).substring(0, 1) }}</el-avatar
             >
             <div class="message__main">
-              <div class="message-sender">{{ userName(m.sender) }}</div>
+              <div class="message-sender">{{ usn(m.sender) }}</div>
               <div class="triangle"></div>
               <div class="message-content">
-                {{ m.payload }}
+                <div>{{ m.payload }}</div>
               </div>
+            </div>
+
+            <div class="message-time">
+              {{ formatTimestamp(m.timestamp) }}
             </div>
           </div>
         </el-scrollbar>
       </div>
     </div>
     <div class="dialog__toolbar">
-      <el-icon :size="28"><picture-filled /></el-icon>
-      <el-icon :size="28"><eleme /></el-icon>
+      <el-icon :size="28" @click="sendImage"><picture-filled /></el-icon>
+      <el-icon :size="28" @click="sendEmoji"><eleme /></el-icon>
     </div>
     <div class="dialog__input">
       <el-input
@@ -51,7 +61,7 @@
         type="textarea"
         :rows="7"
         @input="filterEnter($event)"
-        @keyup.enter="sendText"
+        @keyup.enter="confirmSendText"
       ></el-input>
     </div>
   </div>
@@ -70,26 +80,20 @@ import router from '@/plugins/router';
 import { ElMessage } from 'element-plus';
 import { useStore } from 'vuex';
 import { generateAvatarColor } from '@/utils/avatar';
+import { usn } from '@/utils/cache';
+import { sendMessage } from '@/plugins/im';
+import { formatTimestamp } from '@/utils/time';
 
 // 获取路由参数
 const route = useRoute();
-const type = route.params.type as string;
-const id = parseInt(route.params.id as string);
-// 获取信息
-let userBrief: UserBrief;
-let groupBrief: GroupBrief;
-// mock
-if (type === 'f') {
-  userBrief = {
-    userId: 0,
-    userName: 'Lei Huang'
-  } as UserBrief;
-} else if (type === 'g') {
-  groupBrief = {
-    groupId: 0,
-    groupName: 'SCRUM 2022'
-  } as GroupBrief;
-}
+const type = computed(() => route.params.type as string);
+const id = computed(() => parseInt(route.params.id as string));
+const name = computed(() => route.params.name as string);
+
+// uid
+const store = useStore();
+const uid = computed(() => store.state.userInfo.userId as number);
+
 /**
  * 顶部栏
  */
@@ -100,33 +104,31 @@ const back = () => {
 };
 const toProfile = () => {
   router.push({
-    path: `/home/profile/${type}/${id}`
+    path: `/home/profile/${type.value}/${id.value}`
   });
 };
+
 /**
  * 聊天框
  */
-const messages: Message[] = [];
-// mock
-for (let i = 0; i < 10; i++) {
-  messages.push({
-    sender: i % 2,
-    receiver: (i % 2) + 1,
-    type: 'text',
-    time: '2022-01-29 21:34',
-    payload: 'What are you doing? What are you doing! What are you doing...'
-  });
-}
-const store = useStore();
-const uid = computed(() => store.state.userInfo.userId as number);
-// TODO 缓存用户名
-const userName = (uid: number) => {
-  return 'Feng Liu';
-};
+const messages = computed<Message[]>(
+  () => store.state.dialogs[`${type.value}${id.value}`] || []
+);
+
 /**
  * 输入框
  */
+// 发送图片
+const sendImage = () => {
+  ElMessage.info('to be continued');
+};
+// 发送表情
+const sendEmoji = () => {
+  ElMessage.info('to be continued');
+};
+// 发送文字
 let textInput = ref('');
+// 暂不允许输入回车, 按下 Enter 键立即发送消息
 const filterEnter = (newVal: string) => {
   if (newVal.endsWith('\n')) {
     // nothing happen
@@ -134,9 +136,22 @@ const filterEnter = (newVal: string) => {
     textInput.value = newVal;
   }
 };
-const sendText = () => {
+const confirmSendText = () => {
   if (textInput.value.length > 0) {
-    ElMessage.info(textInput.value);
+    const message: Message = {
+      sender: uid.value,
+      receiver: id.value,
+      group: type.value === 'g' ? 1 : 0,
+      type: 'text',
+      timestamp: new Date().getTime(),
+      payload: textInput.value
+    };
+    // TODO 目前自己发送的消息直接渲染上去
+    store.commit('recvMessage', {
+      k: `${type.value}${id.value}`,
+      message
+    });
+    sendMessage(message);
     textInput.value = '';
   }
 };
@@ -191,7 +206,7 @@ const sendText = () => {
       display: flex;
       flex-direction: row;
       width: 100%;
-      margin-top: 8px;
+      margin-top: 16px;
       position: relative;
       &:first-child {
         margin-top: 24px;
@@ -201,22 +216,30 @@ const sendText = () => {
       }
       &__main {
         display: flex;
+        flex: 1;
         flex-direction: column;
         margin-left: 12px;
       }
       &-sender {
-        font-size: 14px;
-        margin-bottom: 4px;
+        font-size: 13px;
+        margin-bottom: 2px;
         color: #303133;
       }
       &-content {
-        width: 30vw;
-        min-width: 300px;
+        width: fit-content;
         box-sizing: border-box;
-        padding: 8px 12px;
+        padding: 10px 14px;
         background-color: #dcdfe6;
         border-radius: 8px;
         z-index: 2;
+      }
+      &-time {
+        position: absolute;
+        top: 50px;
+        left: 1.5px;
+        font-size: 12px;
+        font-weight: 300;
+        color: #909399;
       }
       .triangle {
         width: 0;
@@ -238,6 +261,13 @@ const sendText = () => {
         }
         .message-sender {
           text-align: right;
+        }
+        .message-content {
+          align-self: end;
+        }
+        .message-time {
+          left: auto;
+          right: 1.5px;
         }
         .triangle {
           right: 50px;

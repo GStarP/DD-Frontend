@@ -16,5 +16,8 @@ body {
   width: 100vw;
   height: 100vh;
   background-color: #fff;
+  .el-avatar {
+    user-select: none;
+  }
 }
 </style>

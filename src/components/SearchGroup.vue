@@ -66,7 +66,10 @@ const searchGroup = () => {
   if (searchKeyInput.value.length < 1) {
     ElMessage.error('search key cannot be empty');
   } else {
-    reqSearchGroup(searchKeyInput.value).then((res) => {
+    reqSearchGroup({
+      userId: uid.value,
+      searchKey: searchKeyInput.value
+    }).then((res) => {
       if (res.code === 0) {
         searchRes.value = res.data;
       }

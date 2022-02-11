@@ -4,32 +4,32 @@
       <el-scrollbar v-if="friendRequests.length > 0">
         <div
           v-for="f in friendRequests"
-          :key="'handle' + f.requestId"
+          :key="f.userId + 'frdreq' + uid"
           class="friend-request"
         >
           <el-avatar
             class="friend-request__avatar"
             :style="`font-size: 24px;background-color: ${generateAvatarColor(
-              f.userName
+              f.userName + ',' + f.userId
             )}`"
             >{{ f.userName.substring(0, 1) }}</el-avatar
           >
           <div class="friend-request__main">
             <div class="friend-request__name">{{ f.userName }}</div>
-            <div class="friend-request__desc">{{ f.description }}</div>
+            <div class="friend-request__desc">{{ f.msg }}</div>
           </div>
           <div class="friend-request__action">
             <el-button
               circle
               :icon="Select"
               type="success"
-              @click="accept(f.requestId)"
+              @click="accept(uid, f.userId, f.userName)"
             ></el-button>
             <el-button
               circle
               :icon="CloseBold"
               type="danger"
-              @click="refuse(f.requestId)"
+              @click="refuse(uid, f.userId)"
             ></el-button>
           </div>
         </div>
@@ -45,35 +45,73 @@
 import { Select, CloseBold } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { generateAvatarColor } from '@/utils/avatar';
+import {
+  reqAcceptFriend,
+  reqListFriendApply,
+  reqRefuseFriend
+} from '@/api/friend';
+import { computed, ref } from 'vue';
+import { useStore } from 'vuex';
+
+// uid
+const store = useStore();
+const uid = computed<number>(() => store.state.userInfo.userId);
 
 // 好友请求
-const friendRequests: FriendRequest[] = [];
-// mock
-for (let i = 0; i < 10; i++) {
-  friendRequests.push({
-    requestId: i,
-    userId: i,
-    userName: 'Yan Zhang',
-    userAvatar:
-      'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png',
-    description: 'pls check your lessons for me'
+const friendRequests = ref<FriendRequest[]>([]);
+// 查看全部好友请求
+const fetchFriendRequests = () => {
+  reqListFriendApply(uid.value).then((res) => {
+    if (res.code === 0) {
+      friendRequests.value = res.data;
+    }
   });
-}
+};
+fetchFriendRequests();
 
-const accept = (rid: number) => {
+// 同意好友请求
+const accept = (userId: number, friendId: number, friendName: string) => {
   ElMessageBox.confirm(
     'Are you sure to ACCEPT this friend request?',
     'Confirm'
   ).then(() => {
-    ElMessage.info('accepted');
+    reqAcceptFriend({
+      userId,
+      friendId
+    }).then((res) => {
+      if (res.code === 0) {
+        ElMessage.success('request accepted');
+        fetchFriendRequests();
+        // 同意请求后，立马在好友列表中加入，而申请者只有刷新才知道申请通过
+        const fl: FriendBriefWithMsg[] = store.state.friendList;
+        fl.push({
+          userId,
+          friendId,
+          nickname: friendName,
+          msg: 'no new message',
+          msgTime: '',
+          msgNum: 0
+        });
+        store.commit('friendList', fl);
+      }
+    });
   });
 };
-const refuse = (rid: number) => {
+// 拒绝好友请求
+const refuse = (userId: number, friendId: number) => {
   ElMessageBox.confirm(
     'Are you sure to REFUSE this friend request?',
     'Confirm'
   ).then(() => {
-    ElMessage.info('refused');
+    reqRefuseFriend({
+      userId,
+      friendId
+    }).then((res) => {
+      if (res.code === 0) {
+        ElMessage.success('request refused');
+        fetchFriendRequests();
+      }
+    });
   });
 };
 </script>

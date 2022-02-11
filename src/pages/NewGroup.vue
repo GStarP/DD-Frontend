@@ -46,7 +46,7 @@ import { useStore } from 'vuex';
 
 // uid
 const store = useStore();
-const uid = computed(() => store.state.uid as number);
+const uid = computed(() => store.state.userInfo.userId as number);
 
 /**
  * 顶部栏
@@ -76,10 +76,6 @@ const createGroup = () => {
         }).then((res) => {
           if (res.code === 0) {
             ElMessage.success('new group created');
-            // TODO 实际效果可能不好
-            router.push({
-              path: `/home/dialog/g/${res.data}`
-            });
           }
         });
       }

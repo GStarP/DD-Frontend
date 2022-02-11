@@ -3,12 +3,21 @@
     <Logo />
     <el-card class="sign-up-card">
       <div class="input-group">
+        <div class="input-group__title">Email</div>
+        <el-input
+          class="input-group__input"
+          size="large"
+          v-model="emailInput"
+          placeholder="Full email address"
+        ></el-input>
+      </div>
+      <div class="input-group">
         <div class="input-group__title">Username</div>
         <el-input
           class="input-group__input"
           size="large"
           v-model="usernameInput"
-          placeholder="Email or Phone"
+          placeholder="Make a nickname"
         ></el-input>
       </div>
       <div class="input-group">
@@ -39,19 +48,43 @@ import Logo from '@/components/Logo.vue';
 import router from '@/plugins/router';
 import { ref } from 'vue';
 import { ElMessage } from 'element-plus';
+import { reqSignUpWithEmail } from '@/api/friend';
 
+// 注册表单
+const emailInput = ref('');
 const usernameInput = ref('');
 const passwordInput = ref('');
-
+// 去登陆
 const toSignInPage = () => {
   router.push({ path: '/sign-in' });
 };
-
+const signUpToSignIn = (userId: number) => {
+  router.push({
+    path: '/sign-in',
+    query: {
+      u: '' + userId
+    }
+  });
+};
+// 确认注册
 const confirmSignUp = () => {
-  if (passwordInput.value.length < 6) {
+  if (emailInput.value.length < 1) {
+    ElMessage.error('please input email');
+  } else if (usernameInput.value.length < 1) {
+    ElMessage.error('please input username');
+  } else if (passwordInput.value.length < 6) {
     ElMessage.error('password length must be over 6');
   } else {
-    // do sign up
+    reqSignUpWithEmail({
+      email: emailInput.value,
+      userName: usernameInput.value,
+      password: passwordInput.value
+    }).then((res) => {
+      if (res.code === 0) {
+        ElMessage.success('signed up');
+        setTimeout(() => signUpToSignIn(res.data), 500);
+      }
+    });
   }
 };
 </script>

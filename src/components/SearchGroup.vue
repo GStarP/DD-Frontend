@@ -58,7 +58,7 @@ import { useStore } from 'vuex';
 
 // uid
 const store = useStore();
-const uid = computed(() => store.state.uid as number);
+const uid = computed(() => store.state.userInfo.userId as number);
 
 // Input
 const searchKeyInput = ref('');
@@ -66,7 +66,10 @@ const searchGroup = () => {
   if (searchKeyInput.value.length < 1) {
     ElMessage.error('search key cannot be empty');
   } else {
-    reqSearchGroup(searchKeyInput.value).then((res) => {
+    reqSearchGroup({
+      userId: uid.value,
+      searchKey: searchKeyInput.value
+    }).then((res) => {
       if (res.code === 0) {
         searchRes.value = res.data;
       }
@@ -93,7 +96,7 @@ const joinGroup = (groupId: number) => {
           reason: data.value
         }).then((res) => {
           if (res.code === 0) {
-            ElMessage.success('successfully send join request');
+            ElMessage.success('successfully send group request');
           }
         });
       }

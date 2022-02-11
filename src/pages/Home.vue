@@ -5,11 +5,21 @@
         <el-avatar
           :size="32"
           :style="`font-size: 16px;background-color: ${generateAvatarColor(
-            nickname
+            userInfo.userName + ',' + userInfo.userId
           )}`"
-          >{{ nickname.substring(0, 1) }}</el-avatar
+          >{{ userInfo.userName.substring(0, 1) }}</el-avatar
         >
-        <div class="status-header__name">{{ nickname }}</div>
+        <div class="status-header__name" @click="toMyProfile">
+          {{ userInfo.userName }}
+        </div>
+        <el-tag
+          class="status-header__online"
+          :type="online ? 'success' : 'danger'"
+          size="small"
+          effect="dark"
+          @click="reqReconnect()"
+          >{{ online ? 'online' : 'offline' }}</el-tag
+        >
         <el-image
           class="status-header__zone"
           :src="zoneImg"
@@ -41,20 +51,36 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
-import { ElMessage } from 'element-plus';
+import { computed, ref } from 'vue';
 import zoneImg from '@/assets/zone.png';
 import ListFriend from '@/components/ListFriend.vue';
 import router from '@/plugins/router';
 import { generateAvatarColor } from '@/utils/avatar';
 import ListGroup from '@/components/ListGroup.vue';
+import { useStore } from 'vuex';
+import { initIM, reconnect } from '@/plugins/im';
+
+const store = useStore();
 
 /**
  * 侧边栏顶部状态条
  */
-const avatarImg =
-  'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png';
-const nickname = 'Dong Shao';
+// 个人信息
+const userInfo = computed(() => store.state.userInfo as UserInfo);
+const toMyProfile = () => {
+  router.push({
+    path: `/home/profile/f/${userInfo.value.userId}`
+  });
+};
+// WS 在线状态
+const online = computed(() => store.state.online as boolean);
+const reqReconnect = () => {
+  if (!online.value) {
+    reconnect(userInfo.value.userId);
+  }
+};
+initIM(userInfo.value.userId);
+// 去空间
 const toZone = () => {
   router.push({
     path: '/home/zone'
@@ -105,6 +131,15 @@ const sideMode = ref(SideMode.Frd);
       &__name {
         margin-left: 12px;
         font-size: 16px;
+        &:hover {
+          cursor: pointer;
+        }
+      }
+      &__online {
+        margin-left: 8px;
+        &:hover {
+          cursor: pointer;
+        }
       }
       &__zone {
         margin-left: auto;

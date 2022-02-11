@@ -1,7 +1,9 @@
-import axios from "axios";
+import axios from 'axios';
+
+const BASE_URL = '/api';
 
 const globalAxios = axios.create({
-  baseURL: "http://127.0.0.1:8080",
+  baseURL: BASE_URL,
   timeout: 5 * 1000
 });
 

@@ -1,7 +1,8 @@
 interface Message {
   sender: number;
   receiver: number;
-  type: 'text' | 'ack';
-  time: string;
+  group: 0 | 1;
+  type: 'text' | 'ack' | 'image';
+  timestamp: number;
   payload: string;
 }

@@ -3,11 +3,11 @@
     <Logo />
     <el-card class="sign-in-card">
       <div class="input-group">
-        <div class="input-group__title">Username</div>
+        <div class="input-group__title">User ID</div>
         <el-input
           class="input-group__input"
           size="large"
-          v-model="usernameInput"
+          v-model="userIdInput"
         ></el-input>
       </div>
       <div class="input-group">
@@ -47,26 +47,49 @@
 import Logo from '@/components/Logo.vue';
 import router from '@/plugins/router';
 import { ref } from 'vue';
-
 import githubIcon from '@/assets/github.png';
 import { ElMessage } from 'element-plus';
+import { reqSignIn } from '@/api/friend';
+import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
+import { usnCache } from '@/utils/cache';
 
-const usernameInput = ref('');
+// 获取路由中带上的 userId
+const route = useRoute();
+let userId = '';
+const uidStr = route.query.u as string;
+if (uidStr !== '') {
+  userId = uidStr;
+}
+
+const store = useStore();
+
+// 登录表单
+const userIdInput = ref(userId);
 const passwordInput = ref('');
-
+// 去注册
 const toSignUpPage = () => {
   router.push({ path: '/sign-up' });
 };
-
+// 确认登录
 const confirmSignIn = () => {
-  if (usernameInput.value.length < 1) {
-    ElMessage.error('username cannot be empty');
+  if (userIdInput.value.length < 1) {
+    ElMessage.error('ID cannot be empty');
   } else if (passwordInput.value.length < 1) {
     ElMessage.error('password cannot be empty');
   } else {
-    // TODO
-    router.push({
-      path: '/home'
+    reqSignIn({
+      userId: userIdInput.value,
+      password: passwordInput.value
+    }).then((res) => {
+      if (res.code === 0) {
+        store.commit('userInfo', res.data);
+        usnCache(res.data.userId, res.data.userName);
+        ElMessage.success('signed in');
+        router.push({
+          path: '/home'
+        });
+      }
     });
   }
 };

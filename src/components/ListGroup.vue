@@ -3,15 +3,21 @@
     <div class="new-group" @click="toNewGroup">
       <el-icon><plus /></el-icon>
       <div>New Group</div>
+      <el-icon
+        :size="18"
+        class="list-group-refresh"
+        @click.stop="fetchGroupList"
+        ><refresh
+      /></el-icon>
     </div>
     <div class="group-list-container">
       <el-scrollbar class="group-list">
         <div
           class="group-item"
-          :class="{ 'group-item-active': grp.groupId == 1 }"
+          :class="{ 'group-item-active': grp.groupId == curGroup }"
           v-for="grp in groupList"
           :key="'grp' + grp.groupId"
-          @click="toGroupDialog(grp.groupId)"
+          @click="toGroupDialog(grp.groupId, grp.groupName)"
         >
           <el-avatar
             class="group-item__avatar"
@@ -24,9 +30,17 @@
           <div class="group-item__main">
             <div class="group-item__top">
               <div class="group-item__name">{{ grp.groupName }}</div>
-              <div class="group-item__recent-time"></div>
+              <div class="group-item__recent-time">{{ grp.msgTime }}</div>
             </div>
-            <div class="group-item__recent-text">no new message</div>
+            <div class="group-item__bottom">
+              <div class="group-item__recent-text">{{ grp.msg }}</div>
+              <div
+                :style="{ visibility: grp.msgNum < 1 ? 'hidden' : 'visible' }"
+                class="group-item__recent-num"
+              >
+                {{ grp.msgNum }}
+              </div>
+            </div>
           </div>
         </div>
       </el-scrollbar>
@@ -36,8 +50,16 @@
 
 <script lang="ts" setup>
 import router from '@/plugins/router';
-import { Plus } from '@element-plus/icons-vue';
+import { Plus, Refresh } from '@element-plus/icons-vue';
 import { generateAvatarColor } from '@/utils/avatar';
+import { computed, ref } from 'vue';
+import { reqListGroup } from '@/api/group';
+import { useStore } from 'vuex';
+
+// uid
+const store = useStore();
+const uid = computed(() => store.state.userInfo.userId as number);
+
 /**
  * 查找好友，处理好友申请的入口
  */
@@ -47,19 +69,37 @@ const toNewGroup = () =>
   });
 
 /**
- * 好友列表
+ * 群组列表
  */
-const groupList: GroupBrief[] = [];
-// mock
-for (let i = 0; i < 15; i++) {
-  groupList.push({
-    groupId: i,
-    groupName: String.fromCharCode(i + 65) + 'eng Liu'
+const groupList = computed<GroupBriefWithMsg[]>(() => store.state.groupList);
+// 获取全部群组
+const fetchGroupList = () => {
+  reqListGroup(uid.value).then((res) => {
+    if (res.code === 0) {
+      store.commit(
+        'groupList',
+        res.data.map((gb) => {
+          return {
+            ...gb,
+            msg: 'no new message',
+            msgTime: '',
+            msgNum: 0
+          } as GroupBriefWithMsg;
+        })
+      );
+      curGroup.value = -1;
+    }
   });
-}
-const toGroupDialog = (gid: number) => {
+};
+fetchGroupList();
+
+// TODO 根据新消息重排序
+// 查看对话
+const curGroup = ref(-1);
+const toGroupDialog = (gid: number, gname: string) => {
+  curGroup.value = gid;
   router.push({
-    path: `/home/dialog/g/${gid}`
+    path: `/home/dialog/g/${gid}/${gname}`
   });
 };
 </script>
@@ -87,6 +127,19 @@ const toGroupDialog = (gid: number) => {
     &:hover {
       cursor: pointer;
       background-color: #dcdfe6;
+    }
+  }
+  &-refresh {
+    transition: transform 0.5s;
+    margin-left: auto;
+    background-color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid #909399;
+    &:hover {
+      cursor: pointer;
+      transform: rotate(180deg);
     }
   }
   .group-list-container {
@@ -141,6 +194,32 @@ const toGroupDialog = (gid: number) => {
       margin-left: auto;
       font-size: 12px;
       color: #909399;
+    }
+    &__bottom {
+      display: flex;
+      flex-direction: row;
+      flex: 1;
+    }
+    &__recent-text {
+      font-size: 13px;
+      color: #909399;
+      height: 44px - 24px;
+
+      width: 360px - 16px * 2 - 44px - 12px - 24px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      word-wrap: normal;
+    }
+    &__recent-num {
+      width: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 12px;
+      border-radius: 4px;
+      background-color: #f56c6c;
+      color: #fff;
     }
   }
 }

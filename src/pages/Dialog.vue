@@ -65,7 +65,28 @@
           accept="image/png, image/jpeg"
           :onchange="onUploadImage" /><picture-filled
       /></el-icon>
-      <el-icon :size="28" @click="sendEmoji"><eleme /></el-icon>
+      <el-popover
+        v-model:visible="emojiListVisible"
+        placement="top"
+        :width="200"
+      >
+        <template #reference>
+          <el-icon :size="28" @click.stop="emojiListVisible = !emojiListVisible"
+            ><eleme
+          /></el-icon>
+        </template>
+        <!-- 选择表情时不关闭弹窗, 阻止事件冒泡 -->
+        <div class="emoji-list" @click.stop>
+          <div
+            class="emoji-btn"
+            v-for="(e, i) of Emoji.emojis"
+            :key="'emoji' + i"
+            @click="addEmoji(e)"
+          >
+            {{ e }}
+          </div>
+        </div>
+      </el-popover>
     </div>
     <div class="dialog__input">
       <el-input
@@ -95,6 +116,7 @@ import { generateAvatarColor } from '@/utils/avatar';
 import { usn } from '@/utils/cache';
 import { sendMessage } from '@/plugins/im';
 import { formatTimestamp } from '@/utils/time';
+import Emoji from '@/plugins/emoji';
 
 // 获取路由参数
 const route = useRoute();
@@ -172,10 +194,7 @@ const openImage = (base64: string) => {
     newWindow.document.close();
   }
 };
-// 发送表情
-const sendEmoji = () => {
-  ElMessage.info('to be continued');
-};
+
 // 发送文字
 let textInput = ref('');
 // 暂不允许输入回车, 按下 Enter 键立即发送消息
@@ -203,6 +222,17 @@ const confirmSendText = () => {
     sendMessage(message);
     textInput.value = '';
   }
+};
+
+// 表情列表弹窗
+const emojiListVisible = ref(false);
+// 点击其它地方关闭弹窗
+window.addEventListener('click', () => {
+  if (emojiListVisible.value) emojiListVisible.value = false;
+});
+// 添加表情
+const addEmoji = (e: string) => {
+  textInput.value += e;
 };
 </script>
 
@@ -352,6 +382,7 @@ const confirmSendText = () => {
       height: 0;
     }
   }
+
   &__input {
     height: 200px;
     .el-textarea__inner {
@@ -359,6 +390,27 @@ const confirmSendText = () => {
       resize: none;
       font-size: 18px;
     }
+  }
+}
+.emoji-list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 200px;
+}
+.emoji-btn {
+  $size: 40px;
+  margin: 4px;
+  width: $size - 4px * 2;
+  height: $size - 4px * 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  border-radius: 4px;
+  &:hover {
+    cursor: pointer;
+    background-color: #ebeef5;
   }
 }
 </style>

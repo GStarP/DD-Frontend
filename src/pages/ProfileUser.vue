@@ -4,10 +4,8 @@
       <el-icon class="profile-user-back" :size="32" @click="back"
         ><ArrowLeft
       /></el-icon>
-      <div class="profile-user-title">
-        User Profile
-      </div>
-      <span style="width: 32px; height: 1px;"></span>
+      <div class="profile-user-title">User Profile</div>
+      <span style="width: 32px; height: 1px"></span>
     </div>
     <div class="profile-user__main">
       <div class="user-profile">
@@ -251,8 +249,6 @@ const delFriend = () => {
 };
 // 拉黑/释放
 const blackenFriend = () => {
-  ElMessage.info('to be continued');
-  return;
   ElMessageBox.confirm(
     `Are you sure to send your friend ${userInfo.value.userName} to black list?`,
     'Blacken Friend'
@@ -268,8 +264,6 @@ const blackenFriend = () => {
   });
 };
 const unblackenFriend = () => {
-  ElMessage.info('to be continued');
-  return;
   ElMessageBox.confirm(
     `Are you sure to release your friend ${userInfo.value.userName} from black list?`,
     'Unblacken Friend'

@@ -236,7 +236,8 @@ const confirmSendText = () => {
       &-time {
         position: absolute;
         top: 50px;
-        left: 1.5px;
+        width: 48px;
+        text-align: center;
         font-size: 12px;
         font-weight: 300;
         color: #909399;
@@ -267,7 +268,6 @@ const confirmSendText = () => {
         }
         .message-time {
           left: auto;
-          right: 1.5px;
         }
         .triangle {
           right: 50px;

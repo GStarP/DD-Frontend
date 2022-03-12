@@ -18,7 +18,7 @@
           size="small"
           effect="dark"
           @click="reqReconnect()"
-          >{{ online ? 'online' : 'offline' }}</el-tag
+          >{{ online ? 'ONLINE' : 'OFFLINE' }}</el-tag
         >
         <el-image
           class="status-header__zone"

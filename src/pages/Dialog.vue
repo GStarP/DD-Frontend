@@ -40,7 +40,13 @@
               <div class="message-sender">{{ usn(m.sender) }}</div>
               <div class="triangle"></div>
               <div class="message-content">
-                <div>{{ m.payload }}</div>
+                <div v-if="m.type === 'text'">{{ m.payload }}</div>
+                <img
+                  v-if="m.type === 'image'"
+                  :src="m.payload"
+                  title="double click to view"
+                  @dblclick="openImage(m.payload)"
+                />
               </div>
             </div>
 
@@ -52,7 +58,13 @@
       </div>
     </div>
     <div class="dialog__toolbar">
-      <el-icon :size="28" @click="sendImage"><picture-filled /></el-icon>
+      <el-icon :size="28" @click="sendImage">
+        <input
+          id="sendImageUpload"
+          type="file"
+          accept="image/png, image/jpeg"
+          :onchange="onUploadImage" /><picture-filled
+      /></el-icon>
       <el-icon :size="28" @click="sendEmoji"><eleme /></el-icon>
     </div>
     <div class="dialog__input">
@@ -120,7 +132,45 @@ const messages = computed<Message[]>(
  */
 // 发送图片
 const sendImage = () => {
-  ElMessage.info('to be continued');
+  // 触发潜藏的 <input>
+  document.getElementById('sendImageUpload')?.click();
+};
+// <input> 的 onchange 事件中的 this 指向自己
+function onUploadImage(this: HTMLInputElement) {
+  const files = this.files;
+  if (files?.length) {
+    const image = files[0];
+    const reader = new FileReader();
+    // 读取 base64 编码并发送消息
+    reader.onload = function () {
+      const base64 = this.result as string;
+      const message: Message = {
+        sender: uid.value,
+        receiver: id.value,
+        group: type.value === 'g' ? 1 : 0,
+        type: 'image',
+        timestamp: new Date().getTime(),
+        payload: base64
+      };
+      store.commit('recvMessage', {
+        k: `${type.value}${id.value}`,
+        message
+      });
+      sendMessage(message);
+    };
+    reader.readAsDataURL(image);
+  }
+}
+// 在新标签页显示完整图片
+const openImage = (base64: string) => {
+  const img = new Image();
+  img.src = base64;
+  const newWindow = window.open('', '_blank');
+  if (newWindow) {
+    newWindow.document.write(img.outerHTML);
+    newWindow.document.title = 'DongDong | Image View';
+    newWindow.document.close();
+  }
 };
 // 发送表情
 const sendEmoji = () => {
@@ -146,7 +196,6 @@ const confirmSendText = () => {
       timestamp: new Date().getTime(),
       payload: textInput.value
     };
-    // TODO 目前自己发送的消息直接渲染上去
     store.commit('recvMessage', {
       k: `${type.value}${id.value}`,
       message
@@ -232,6 +281,9 @@ const confirmSendText = () => {
         background-color: #dcdfe6;
         border-radius: 8px;
         z-index: 2;
+        img {
+          max-width: 40vw;
+        }
       }
       &-time {
         position: absolute;
@@ -293,6 +345,11 @@ const confirmSendText = () => {
     }
     > i:not(:first-child) {
       margin-left: 16px;
+    }
+    #sendImageUpload {
+      position: absolute;
+      width: 0;
+      height: 0;
     }
   }
   &__input {

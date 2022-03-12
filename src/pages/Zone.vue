@@ -29,9 +29,7 @@
           >
             <el-button :icon="Upload">Upload Picture</el-button>
             <template #tip>
-              <div class="el-upload__tip">
-                only allow 1 pictures
-              </div>
+              <div class="el-upload__tip">allow only 1 picture</div>
             </template>
           </el-upload>
           <template #footer>
@@ -41,9 +39,7 @@
       </div>
     </div>
     <div class="zone__main">
-      <div class="no-blog" v-if="blogList.length < 1">
-        Empty Zone
-      </div>
+      <div class="no-blog" v-if="blogList.length < 1">Empty Zone</div>
       <el-scrollbar class="zone-blog-list">
         <div
           class="blog"
@@ -170,16 +166,22 @@ const postBlog = () => {
 // 发表动态弹窗
 const newBlogTextInput = ref('');
 const picturesInput = ref([] as UploadFile[]);
+let base64Pictures: string[] = [];
 const onPitcuresChange = (file: UploadFile, list: UploadFile[]) => {
   picturesInput.value = list;
-  console.log(list);
+  const reader = new FileReader();
+  reader.onload = function () {
+    const base64 = this.result as string;
+    base64Pictures = [base64];
+  };
+  reader.readAsDataURL(file.raw);
 };
 const submitPostBlog = () => {
   if (newBlogTextInput.value.length > 0) {
     reqPostBlog({
       userId: '' + uid.value,
       context: newBlogTextInput.value,
-      pics: []
+      pics: base64Pictures
     }).then((res) => {
       if (res.code === 0) {
         ElMessage.success('new blog posted');

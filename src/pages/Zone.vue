@@ -62,7 +62,9 @@
                 >
                   {{ b.userName }}
                 </div>
-                <div class="blog-poster-time">{{ b.timestamp }}</div>
+                <div class="blog-poster-time">
+                  {{ fullFormatTimestamp(parseInt(b.timestamp)) }}
+                </div>
               </div>
               <el-button
                 v-if="uid === parseInt(b.userId)"
@@ -70,6 +72,14 @@
                 class="blog-delete"
                 @click="delBlog(parseInt(b.blogId))"
                 >Delete</el-button
+              >
+            </div>
+            <!-- TODO 以 ownerId!=0 为转发标准-->
+            <div class="blog__origin" v-if="parseInt(b.ownerId) !== 0">
+              <el-icon><Connection /></el-icon>
+              Shared from
+              <span @click="toUserProfile(parseInt(b.ownerId))"
+                >{{ b.ownerName }} (ID: {{ b.ownerId }})</span
               >
             </div>
             <div class="blog__main">
@@ -92,6 +102,9 @@
               <div class="blog-like-num">{{ b.likes }}</div>
               <el-icon :size="26" @click="reqComment(index)"
                 ><chat-round
+              /></el-icon>
+              <el-icon :size="26" @click="reqTransfer(index)"
+                ><Share
               /></el-icon>
             </div>
             <el-divider v-if="b.comments.length > 0"></el-divider>
@@ -126,7 +139,9 @@ import {
   Star,
   StarFilled,
   ChatRound,
-  Upload
+  Upload,
+  Share,
+  Connection
 } from '@element-plus/icons-vue';
 import router from '@/plugins/router';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -142,8 +157,10 @@ import {
   reqLikeBlog,
   reqListBlog,
   reqPostBlog,
-  reqPostComment
+  reqPostComment,
+  reqTransferBlog
 } from '@/api/blog';
+import { fullFormatTimestamp } from '@/utils/time';
 
 // uid
 const store = useStore();
@@ -196,7 +213,7 @@ const submitPostBlog = () => {
  * 空间主体
  */
 // 动态列表
-const blogList = ref([] as Blog[]);
+const blogList = ref<Blog[]>([]);
 // 获取动态
 const fetchBlogList = () => {
   reqListBlog(uid.value).then((res) => {
@@ -267,6 +284,22 @@ const reqComment = (index: number) => {
     }
   });
 };
+// 请求转发
+const reqTransfer = (index: number) => {
+  ElMessageBox.confirm('Are you sure to share this blog ?', 'Share').then(
+    () => {
+      reqTransferBlog({
+        userId: uid.value,
+        blogId: parseInt(blogList.value[index].blogId)
+      }).then((res) => {
+        if (res.code === 0) {
+          ElMessage.success('blog shared');
+        }
+      });
+    }
+  );
+};
+
 // 删除评论
 const delComment = (index: number, commentIndex: number) => {
   ElMessageBox.confirm(
@@ -333,7 +366,7 @@ const delComment = (index: number, commentIndex: number) => {
     margin-top: 24px;
   }
   &__main {
-    height: 100%;
+    flex: 1;
     position: relative;
   }
   .no-blog {
@@ -403,8 +436,33 @@ const delComment = (index: number, commentIndex: number) => {
       margin-left: auto;
       color: #909399;
     }
-    &-text {
+    &__origin {
+      margin-top: 12px;
+      width: 100%;
+      height: 32px;
+      border-radius: 4px;
+      background-color: #ebeef5;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      color: rgba(#000, $alpha: 0.5);
+      user-select: none;
+      i {
+        margin-right: 6px;
+      }
+      span {
+        margin-left: 8px;
+        color: rgba(#000, $alpha: 0.7);
+        &:hover {
+          cursor: pointer;
+          text-decoration: underline;
+        }
+      }
+    }
+    &__main {
       margin-top: 16px;
+    }
+    &-text {
       font-size: 18px;
       line-height: 28px;
     }

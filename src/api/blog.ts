@@ -4,6 +4,35 @@ import { Res } from '@/interfaces/common';
 
 // 3.1 查看空间
 export async function reqListBlog(userId: number) {
+  const mock = [
+    {
+      blogId: '100',
+      userId: '0',
+      userName: 'HXW',
+      ownerId: '0',
+      ownerName: '',
+      timestamp: new Date().getTime() + '',
+      context: 'abaaba ababa abababa bababababab',
+      pics: [],
+      comments: [],
+      likes: 1,
+      liked: true
+    },
+    {
+      blogId: '101',
+      userId: '0',
+      userName: 'HXW',
+      ownerId: '10',
+      ownerName: 'WYX',
+      timestamp: new Date().getTime() + '',
+      context: 'abaaba ababa abababa bababababab',
+      pics: [],
+      comments: [],
+      likes: 1,
+      liked: true
+    }
+  ];
+  return mockData(mock);
   const { data } = await axios.get<Res<Blog[]>>('/space/list', {
     params: {
       userId: '' + userId
@@ -49,6 +78,20 @@ export async function reqDislikeBlog(params: {
   blogId: number;
 }) {
   const { data } = await axios.post<Res<null>>('/space/dislike', null, {
+    params: {
+      userId: '' + params.userId,
+      blogId: '' + params.blogId
+    }
+  });
+  return data;
+}
+
+// 3.6 转发动态
+export async function reqTransferBlog(params: {
+  userId: number;
+  blogId: number;
+}) {
+  const { data } = await axios.post<Res<null>>('/space/transfer', null, {
     params: {
       userId: '' + params.userId,
       blogId: '' + params.blogId

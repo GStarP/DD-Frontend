@@ -16,22 +16,22 @@ export async function reqSignUpWithEmail(params: {
 
 // 2.2 用户登录
 export async function reqSignIn(params: { userId: string; password: string }) {
+  const mock: UserInfo = {
+    userId: 0,
+    userName: 'HXW',
+    password: '',
+    email: '',
+    phone: '',
+    age: 0,
+    gender: 0,
+    friend: false,
+    blacked: false
+  };
+  return mockData(mock);
   const { data } = await axios.post<Res<UserInfo>>('/user/login', null, {
     params
   });
   return data;
-  // const mock: UserInfo = {
-  //   userId: 0,
-  //   userName: 'HXW',
-  //   password: '',
-  //   email: '',
-  //   phone: '',
-  //   age: 0,
-  //   gender: 0,
-  //   friend: false,
-  //   blacked: false
-  // };
-  // return mockData(mock);
 }
 
 // 2.3.1 查找好友（用户）- 使用id查找
@@ -55,6 +55,17 @@ export async function reqSearchUserById(userId: string, uid: number) {
   //   blacked: false
   // };
   // return mockData(mock);
+}
+
+// 2.3.2 查找好友（用户）- 使用昵称查找
+export async function reqSearchUserByName(userName: string, uid: number) {
+  const { data } = await axios.get<Res<UserInfo>>('/user/search-name', {
+    params: {
+      userName,
+      ownerId: uid
+    }
+  });
+  return data;
 }
 
 // 2.4 查看好友（用户）资料
@@ -181,6 +192,19 @@ export async function reqUnblackenFriend(params: {
 
 // 2.8 查看好友列表
 export async function reqListFriend(userId: number) {
+  const mock: FriendBrief[] = [
+    {
+      userId: 0,
+      friendId: 1,
+      nickname: 'Feng Liu'
+    },
+    {
+      userId: 0,
+      friendId: 2,
+      nickname: 'Jia Liu'
+    }
+  ];
+  return mockData(mock);
   const { data } = await axios.get<Res<FriendBrief[]>>(
     '/friend/get-friend-list',
     {
@@ -190,19 +214,6 @@ export async function reqListFriend(userId: number) {
     }
   );
   return data;
-  // const mock: FriendBrief[] = [
-  //   {
-  //     userId: 0,
-  //     friendId: 1,
-  //     nickname: 'Feng Liu'
-  //   },
-  //   {
-  //     userId: 0,
-  //     friendId: 2,
-  //     nickname: 'Jia Liu'
-  //   }
-  // ];
-  // return mockData(mock);
 }
 
 // 2.9 修改个人资料

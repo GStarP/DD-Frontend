@@ -4,7 +4,7 @@
       class="search-friend__input"
       size="large"
       :prefix-icon="Search"
-      placeholder="input user id"
+      placeholder="input user id or user name"
       v-model="searchInput"
       @keyup.enter="searchFriend"
     ></el-input>
@@ -40,9 +40,7 @@
           </div>
         </div>
       </el-scrollbar>
-      <div class="search-friend-none" v-else>
-        No Result
-      </div>
+      <div class="search-friend-none" v-else>No Result</div>
     </div>
   </div>
 </template>
@@ -52,9 +50,14 @@ import { computed, ref } from 'vue';
 import { Search } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { generateAvatarColor } from '@/utils/avatar';
-import { reqApplyFriend, reqSearchUserById } from '@/api/friend';
+import {
+  reqApplyFriend,
+  reqSearchUserById,
+  reqSearchUserByName
+} from '@/api/friend';
 import { useStore } from 'vuex';
 import router from '@/plugins/router';
+import { isNumber } from '@/utils/common';
 
 // uid
 const store = useStore();
@@ -66,11 +69,20 @@ const searchFriend = () => {
   if (searchInput.value.length < 1) {
     ElMessage.error('search key cannot be empty');
   } else {
-    reqSearchUserById(searchInput.value, uid.value).then((res) => {
-      if (res.code === 0) {
-        searchRes.value = [res.data];
-      }
-    });
+    const key = searchInput.value;
+    if (isNumber(key)) {
+      reqSearchUserById(key, uid.value).then((res) => {
+        if (res.code === 0) {
+          searchRes.value = [res.data];
+        }
+      });
+    } else {
+      reqSearchUserByName(key, uid.value).then((res) => {
+        if (res.code === 0) {
+          searchRes.value = [res.data];
+        }
+      });
+    }
   }
 };
 

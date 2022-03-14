@@ -74,8 +74,7 @@
                 >Delete</el-button
               >
             </div>
-            <!-- TODO 以 ownerId!=0 为转发标准-->
-            <div class="blog__origin" v-if="parseInt(b.ownerId) !== 0">
+            <div class="blog__origin" v-if="b.ownerId !== b.userId">
               <el-icon><Connection /></el-icon>
               Shared from
               <span @click="toUserProfile(parseInt(b.ownerId))"

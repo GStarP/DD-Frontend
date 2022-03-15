@@ -10,7 +10,7 @@ export async function reqListBlog(userId: number) {
       userId: '0',
       userName: 'HXW',
       ownerId: '0',
-      ownerName: '',
+      ownerName: 'HXW',
       timestamp: new Date().getTime() + '',
       context: 'abaaba ababa abababa bababababab',
       pics: [],
@@ -36,6 +36,46 @@ export async function reqListBlog(userId: number) {
   const { data } = await axios.get<Res<Blog[]>>('/space/list', {
     params: {
       userId: '' + userId
+    }
+  });
+  return data;
+}
+
+// 3.1 查看好友动态
+export async function reqListFriendBlog(userId: number, friendId: number) {
+  const mock = [
+    {
+      blogId: '100',
+      userId: '1',
+      userName: 'Feng Liu',
+      ownerId: '1',
+      ownerName: 'Feng Liu',
+      timestamp: new Date().getTime() + '',
+      context: 'abaaba ababa abababa bababababab',
+      pics: [],
+      comments: [],
+      likes: 1,
+      liked: true
+    },
+    {
+      blogId: '101',
+      userId: '1',
+      userName: 'Feng Liu',
+      ownerId: '10',
+      ownerName: 'WYX',
+      timestamp: new Date().getTime() + '',
+      context: 'abaaba ababa abababa bababababab',
+      pics: [],
+      comments: [],
+      likes: 1,
+      liked: true
+    }
+  ];
+  return mockData(mock);
+  const { data } = await axios.get<Res<Blog[]>>('/space/look', {
+    params: {
+      userId: '' + userId,
+      friendId: '' + friendId
     }
   });
   return data;

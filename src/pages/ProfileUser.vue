@@ -30,7 +30,7 @@
                 <el-icon :size="32" @click="addFriend"><CirclePlus /></el-icon>
               </template>
               <template v-else>
-                <el-icon :size="30" @click="delFriend" color="#F56C6C"
+                <el-icon :size="32" @click="delFriend" color="#F56C6C"
                   ><Delete
                 /></el-icon>
                 <el-icon
@@ -63,6 +63,14 @@
         </div>
         <div class="user-profile__attr"><span>Age</span>{{ userInfo.age }}</div>
       </div>
+      <el-button
+        class="look-zone"
+        size="large"
+        type="primary"
+        @click="toFriendZone(userInfo.userId)"
+        >VIEW ZONE</el-button
+      >
+      <!-- 修改个人信息弹窗 -->
       <el-dialog
         class="edit-profile"
         v-model="editShow"
@@ -278,6 +286,12 @@ const unblackenFriend = () => {
     });
   });
 };
+// 查看好友空间
+const toFriendZone = (id: number) => {
+  router.push({
+    path: `/home/friend-zone/${id}`
+  });
+};
 </script>
 
 <style lang="scss">
@@ -361,6 +375,11 @@ const unblackenFriend = () => {
         color: #303133;
       }
     }
+  }
+  .look-zone {
+    width: 400px;
+    margin-top: 24px;
+    word-spacing: 6px;
   }
   .edit-profile {
     &__attr {

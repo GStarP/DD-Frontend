@@ -8,6 +8,7 @@ import Zone from '@/pages/Zone.vue';
 import DiaLog from '@/pages/Dialog.vue';
 import ProfileUser from '@/pages/ProfileUser.vue';
 import ProfileGroup from '@/pages/ProfileGroup.vue';
+import FriendZone from '@/pages/FriendZone.vue';
 
 const routes = [
   {
@@ -41,6 +42,10 @@ const routes = [
       {
         path: 'zone',
         component: Zone
+      },
+      {
+        path: 'friend-zone/:id',
+        component: FriendZone
       },
       {
         path: 'dialog/:type/:id/:name',

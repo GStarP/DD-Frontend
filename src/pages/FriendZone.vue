@@ -10,38 +10,7 @@
         ><ArrowLeft
       /></el-icon>
       <div class="zone-title">Zone</div>
-      <div class="zone-actions">
-        <el-icon class="zone-post" :size="32" @click="postBlog"
-          ><CirclePlus
-        /></el-icon>
-        <!-- 发表动态弹窗 -->
-        <el-dialog v-model="postBlogShow" width="600px" title="New Blog">
-          <el-input
-            v-model="newBlogTextInput"
-            type="textarea"
-            autosize
-            placeholder="Input blog text"
-          ></el-input>
-          <el-upload
-            class="post-blog-picture"
-            accept="image/*"
-            :limit="1"
-            action="#"
-            list-type="picture"
-            :auto-upload="false"
-            :file-list="picturesInput"
-            :on-change="onPitcuresChange"
-          >
-            <el-button :icon="Upload">Upload Picture</el-button>
-            <template #tip>
-              <div class="el-upload__tip">allow only 1 picture</div>
-            </template>
-          </el-upload>
-          <template #footer>
-            <el-button type="primary" @click="submitPostBlog">Submit</el-button>
-          </template>
-        </el-dialog>
-      </div>
+      <div class="zone-actions"></div>
     </div>
     <div class="zone__main">
       <div class="no-blog" v-if="blogList.length < 1">Empty Zone</div>
@@ -71,13 +40,6 @@
                   {{ fullFormatTimestamp(parseInt(b.timestamp)) }}
                 </div>
               </div>
-              <el-button
-                v-if="uid === parseInt(b.userId)"
-                type="text"
-                class="blog-delete"
-                @click="delBlog(parseInt(b.blogId))"
-                >Delete</el-button
-              >
             </div>
             <div class="blog__origin" v-if="b.ownerId !== b.userId">
               <el-icon><Connection /></el-icon>
@@ -139,11 +101,9 @@
 <script lang="ts" setup>
 import {
   ArrowLeft,
-  CirclePlus,
   Star,
   StarFilled,
   ChatRound,
-  Upload,
   Share,
   Connection,
   Refresh
@@ -154,18 +114,20 @@ import { generateAvatarColor } from '@/utils/avatar';
 import { useStore } from 'vuex';
 import { computed } from 'vue';
 import { ref } from 'vue';
-import type { UploadFile } from 'element-plus/es/components/upload/src/upload.type';
 import {
-  reqDeleteBlog,
   reqDeleteComment,
   reqDislikeBlog,
   reqLikeBlog,
-  reqListBlog,
-  reqPostBlog,
+  reqListFriendBlog,
   reqPostComment,
   reqTransferBlog
 } from '@/api/blog';
 import { fullFormatTimestamp } from '@/utils/time';
+import { useRoute } from 'vue-router';
+
+// 获取路由参数
+const route = useRoute();
+const friendId = parseInt(route.params.id as string);
 
 // uid
 const store = useStore();
@@ -180,39 +142,6 @@ const back = () => {
     path: '/home'
   });
 };
-// 请求发表动态
-const postBlogShow = ref(false);
-const postBlog = () => {
-  postBlogShow.value = true;
-};
-// 发表动态弹窗
-const newBlogTextInput = ref('');
-const picturesInput = ref([] as UploadFile[]);
-let base64Pictures: string[] = [];
-const onPitcuresChange = (file: UploadFile, list: UploadFile[]) => {
-  picturesInput.value = list;
-  const reader = new FileReader();
-  reader.onload = function () {
-    const base64 = this.result as string;
-    base64Pictures = [base64];
-  };
-  reader.readAsDataURL(file.raw);
-};
-const submitPostBlog = () => {
-  if (newBlogTextInput.value.length > 0) {
-    reqPostBlog({
-      userId: '' + uid.value,
-      context: newBlogTextInput.value,
-      pics: base64Pictures
-    }).then((res) => {
-      if (res.code === 0) {
-        ElMessage.success('new blog posted');
-        fetchBlogList();
-      }
-    });
-    postBlogShow.value = false;
-  }
-};
 
 /**
  * 空间主体
@@ -221,7 +150,7 @@ const submitPostBlog = () => {
 const blogList = ref<Blog[]>([]);
 // 获取动态
 const fetchBlogList = () => {
-  reqListBlog(uid.value).then((res) => {
+  reqListFriendBlog(uid.value, friendId).then((res) => {
     if (res.code === 0) {
       blogList.value = res.data;
     }
@@ -233,19 +162,6 @@ const toUserProfile = (userId: number) => {
   router.push({
     path: `/home/profile/f/${userId}`
   });
-};
-// 删除动态
-const delBlog = (bid: number) => {
-  ElMessageBox.confirm('Are you sure to delete this blog?', 'Delete Blog').then(
-    () => {
-      reqDeleteBlog(bid).then((res) => {
-        if (res.code === 0) {
-          ElMessage.success('deleted blog');
-          fetchBlogList();
-        }
-      });
-    }
-  );
 };
 /* 只影响到单条动态局部内容的操作在客户端直接更新，而不刷新全部动态 */
 // 点赞/取消点赞
@@ -381,8 +297,6 @@ const refreshZone = () => {
   }
   &-title {
     font-size: 20px;
-    display: flex;
-    align-items: center;
   }
   &-post {
     border-radius: 50%;

@@ -70,6 +70,18 @@ export async function reqSearchUserByName(userName: string, uid: number) {
 
 // 2.4 查看好友（用户）资料
 export async function reqGetUserInfo(userId: number, uid: number) {
+  const mock: UserInfo = {
+    userId,
+    userName: String.fromCharCode(65 + userId) + 'an Zhang',
+    password: '1234556',
+    email: 'fengliu@nju.com',
+    phone: '18356567878',
+    gender: 0,
+    age: 40,
+    friend: true,
+    blacked: false
+  };
+  return mockLoadingData(mock, 1);
   const { data } = await axios.get<Res<UserInfo>>('/user/get-information', {
     params: {
       userId: '' + userId,
@@ -77,18 +89,6 @@ export async function reqGetUserInfo(userId: number, uid: number) {
     }
   });
   return data;
-  // const mock: UserInfo = {
-  //   userId,
-  //   userName: String.fromCharCode(65 + userId) + 'an Zhang',
-  //   password: '1234556',
-  //   email: 'fengliu@nju.com',
-  //   phone: '18356567878',
-  //   gender: 0,
-  //   age: 40,
-  //   friend: false,
-  //   blacked: false
-  // };
-  // return mockLoadingData(mock, 1);
 }
 
 // 2.5.1 好友申请

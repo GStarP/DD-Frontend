@@ -59,7 +59,6 @@ const store = createStore({
       } else {
         state.dialogs[payload.k] = [payload.message];
       }
-      console.log(state.dialogs);
     },
     friendList(state, fl: FriendBriefWithMsg[]) {
       state.friendList = fl;

@@ -75,9 +75,9 @@ const toMyProfile = () => {
 // WS 在线状态
 const online = computed(() => store.state.online as boolean);
 const reqReconnect = () => {
-  if (!online.value) {
-    reconnect(userInfo.value.userId);
-  }
+  // if (!online.value) {
+  reconnect(userInfo.value.userId);
+  // }
 };
 initIM(userInfo.value.userId);
 // 去空间

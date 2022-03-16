@@ -63,7 +63,7 @@
           id="sendImageUpload"
           type="file"
           accept="image/png, image/jpeg"
-          :onchange="onUploadImage" /><picture-filled
+          @change="onUploadImage" /><picture-filled
       /></el-icon>
       <el-popover
         v-model:visible="emojiListVisible"
@@ -117,6 +117,7 @@ import { usn } from '@/utils/cache';
 import { sendMessage } from '@/plugins/im';
 import { formatTimestamp } from '@/utils/time';
 import Emoji from '@/plugins/emoji';
+import { scaleImage } from '@/utils/image';
 
 // 获取路由参数
 const route = useRoute();
@@ -157,30 +158,34 @@ const sendImage = () => {
   // 触发潜藏的 <input>
   document.getElementById('sendImageUpload')?.click();
 };
-// <input> 的 onchange 事件中的 this 指向自己
-function onUploadImage(this: HTMLInputElement) {
-  const that = this;
-  const files = this.files;
+
+function onUploadImage(event: any) {
+  const e = event.target as HTMLInputElement;
+  const files = e.files;
   if (files?.length) {
     const image = files[0];
     const reader = new FileReader();
     // 读取 base64 编码并发送消息
     reader.onload = function () {
       const base64 = this.result as string;
-      const message: Message = {
-        sender: uid.value,
-        receiver: id.value,
-        group: type.value === 'g' ? 1 : 0,
-        type: 'image',
-        timestamp: new Date().getTime(),
-        payload: base64
-      };
-      store.commit('recvMessage', {
-        k: `${type.value}${id.value}`,
-        message
+      console.log('before');
+      scaleImage(base64, { w: 32, h: 32 }).then((newBase64) => {
+        const message: Message = {
+          sender: uid.value,
+          receiver: id.value,
+          group: type.value === 'g' ? 1 : 0,
+          type: 'image',
+          timestamp: new Date().getTime(),
+          payload: newBase64
+        };
+        store.commit('recvMessage', {
+          k: `${type.value}${id.value}`,
+          message
+        });
+        sendMessage(message);
+        // 将文件路径置空, 使得上传相同图片依然可以触发
+        event.target.value = null;
       });
-      sendMessage(message);
-      that.files = null;
     };
     reader.readAsDataURL(image);
   }

@@ -9,19 +9,33 @@ let ws: WebSocket | null = null;
 
 export function initIM(userId: number) {
   ws = new WebSocket(`ws://172.19.240.21/dd/session/${userId}`);
+
   ws.onopen = () => {
     console.log('online');
     store.commit('online', true);
+    // heartCheck(ws);
   };
+
   ws.onclose = () => {
     console.log('offline');
     store.commit('online', false);
   };
+
+  ws.onerror = (e) => {
+    console.error(e);
+    store.commit('online', false);
+  };
+
   ws.onmessage = (e: MessageEvent<string>) => {
     const msg: Message = JSON.parse(e.data);
     console.log('receive msg', msg);
     if (msg.type === 'ack') {
       // do nothing
+    } else if (msg.type === 'heart') {
+      if (timeoutTimer) clearTimeout(timeoutTimer);
+      heartTimer = setTimeout(() => {
+        heartCheck(ws);
+      }, HEART_INTERVAL);
     } else {
       receiveMessage(msg);
     }
@@ -103,9 +117,39 @@ function rearrangeGroupList(message: Message) {
 
 export function sendMessage(message: Message) {
   if (ws) {
-    ws.send(JSON.stringify(message));
-    console.log('send msg', message);
+    try {
+      ws.send(JSON.stringify(message));
+      console.log('send msg', message);
+    } catch (e) {
+      console.error(e);
+    }
   } else {
     console.error('you are now offline');
   }
+}
+
+// 心跳机制
+const HEART_INTERVAL = 8 * 1000;
+const TIMEOUT = 3 * 1000;
+let timeoutTimer = setTimeout(() => null);
+let heartTimer = setTimeout(() => {});
+function heartCheck(ws: WebSocket | null) {
+  if (ws === null) return;
+  sendHeartMessage();
+  timeoutTimer = setTimeout(() => {
+    ws.close();
+    store.commit('online', false);
+  }, TIMEOUT);
+}
+
+// 发送心跳消息
+function sendHeartMessage() {
+  sendMessage({
+    type: 'heart',
+    sender: 0,
+    receiver: 0,
+    payload: '',
+    group: 0,
+    timestamp: 0
+  });
 }

@@ -103,7 +103,10 @@ fetchFriendList();
 const curFriend = ref(-1);
 const toFriendDialog = (uid: number, userName: string, index: number) => {
   // 查看对话时清零所有未读消息数
-  store.commit('clearUnread', index);
+  store.commit('clearUnread', {
+    type: 'f',
+    index
+  });
   curFriend.value = uid;
   router.push({
     path: `/home/dialog/f/${uid}/${userName}`

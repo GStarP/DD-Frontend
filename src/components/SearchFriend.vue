@@ -79,7 +79,7 @@ const searchFriend = () => {
     } else {
       reqSearchUserByName(key, uid.value).then((res) => {
         if (res.code === 0) {
-          searchRes.value = [res.data];
+          searchRes.value = res.data;
         }
       });
     }

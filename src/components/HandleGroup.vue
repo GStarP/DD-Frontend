@@ -38,9 +38,7 @@
           </div>
         </div>
       </el-scrollbar>
-      <div class="handle-group-none" v-else>
-        No Request
-      </div>
+      <div class="handle-group-none" v-else>No Request</div>
     </div>
   </div>
 </template>
@@ -60,11 +58,14 @@ const uid = computed(() => store.state.userInfo.userId as number);
 
 // 查看加群请求
 const groupRequests = ref([] as GroupRequest[]);
-reqListGroupRequest(uid.value).then((res) => {
-  if (res.code === 0) {
-    groupRequests.value = res.data;
-  }
-});
+const fetchGroupRequests = () => {
+  reqListGroupRequest(uid.value).then((res) => {
+    if (res.code === 0) {
+      groupRequests.value = res.data;
+    }
+  });
+};
+fetchGroupRequests();
 
 // 接收请求
 const accept = (rid: number) => {
@@ -79,6 +80,7 @@ const accept = (rid: number) => {
     }).then((res) => {
       if (res.code === 0) {
         ElMessage.success('request accepted');
+        fetchGroupRequests();
       }
     });
   });
@@ -96,6 +98,7 @@ const refuse = (rid: number) => {
     }).then((res) => {
       if (res.code === 0) {
         ElMessage.success('request refused');
+        fetchGroupRequests();
       }
     });
   });

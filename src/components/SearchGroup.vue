@@ -4,7 +4,7 @@
       class="search-group__input"
       size="large"
       :prefix-icon="Search"
-      placeholder="input group id"
+      placeholder="input group name"
       v-model="searchKeyInput"
       @keyup.enter="searchGroup"
     ></el-input>
@@ -40,9 +40,7 @@
           </div>
         </div>
       </el-scrollbar>
-      <div class="search-group-none" v-else>
-        No Result
-      </div>
+      <div class="search-group-none" v-else>No Result</div>
     </div>
   </div>
 </template>

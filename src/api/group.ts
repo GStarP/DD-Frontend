@@ -4,17 +4,17 @@ import { mockData } from '@/utils/mock';
 
 // 1.1 查看群组列表
 export async function reqListGroup(userId: number) {
-  const mock: GroupBrief[] = [
-    {
-      groupId: 1,
-      groupName: 'SCRUM 2022'
-    },
-    {
-      groupId: 2,
-      groupName: 'Elden Ring'
-    }
-  ];
-  return mockData(mock);
+  // const mock: GroupBrief[] = [
+  //   {
+  //     groupId: 1,
+  //     groupName: 'SCRUM 2022'
+  //   },
+  //   {
+  //     groupId: 2,
+  //     groupName: 'Elden Ring'
+  //   }
+  // ];
+  // return mockData(mock);
   const { data } = await axios.get<Res<GroupBrief[]>>('/group/list', {
     params: {
       userId
@@ -84,21 +84,21 @@ export async function reqCreateGroup(params: {
 
 // 1.7 查看群组资料
 export async function reqGroupInfo(groupId: number) {
-  const mock: GroupInfo = {
-    groupId: 0,
-    groupName: 'SCRUM 2020',
-    members: [
-      {
-        userId: 0,
-        userName: 'HXW'
-      },
-      {
-        userId: 1,
-        userName: 'CPH'
-      }
-    ]
-  };
-  return mockData(mock);
+  // const mock: GroupInfo = {
+  //   groupId: 0,
+  //   groupName: 'SCRUM 2020',
+  //   members: [
+  //     {
+  //       userId: 0,
+  //       userName: 'HXW'
+  //     },
+  //     {
+  //       userId: 1,
+  //       userName: 'CPH'
+  //     }
+  //   ]
+  // };
+  // return mockData(mock);
   const { data } = await axios.get('/group/info', {
     params: {
       groupId

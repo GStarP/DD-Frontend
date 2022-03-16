@@ -159,6 +159,7 @@ const sendImage = () => {
 };
 // <input> 的 onchange 事件中的 this 指向自己
 function onUploadImage(this: HTMLInputElement) {
+  const that = this;
   const files = this.files;
   if (files?.length) {
     const image = files[0];
@@ -179,6 +180,7 @@ function onUploadImage(this: HTMLInputElement) {
         message
       });
       sendMessage(message);
+      that.files = null;
     };
     reader.readAsDataURL(image);
   }

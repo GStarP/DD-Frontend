@@ -32,7 +32,7 @@
                 <el-table-column
                   label="ID"
                   property="friendId"
-                  width="64"
+                  width="100"
                 ></el-table-column>
                 <el-table-column
                   label="Name"
@@ -153,8 +153,9 @@ reqListFriend(uid.value).then((res) => {
 const inviteFriendList = computed<FriendBrief[]>(() => {
   const li = [];
   const mems = groupInfo.value.members.map((m) => m.userId);
+  // 已入群的好友和管理员不能邀请
   for (const f of friendList.value) {
-    if (!mems.includes(f.friendId)) {
+    if (!mems.includes(f.friendId) && f.friendId !== 9999) {
       li.push(f);
     }
   }

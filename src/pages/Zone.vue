@@ -68,7 +68,7 @@
                   {{ b.userName }}
                 </div>
                 <div class="blog-poster-time">
-                  {{ fullFormatTimestamp(parseInt(b.timestamp)) }}
+                  {{ b.timestamp }}
                 </div>
               </div>
               <el-button
@@ -107,7 +107,10 @@
               <el-icon :size="26" @click="reqComment(index)"
                 ><chat-round
               /></el-icon>
-              <el-icon :size="26" @click="reqTransfer(index)"
+              <el-icon
+                v-if="uid !== parseInt(b.userId) && uid !== parseInt(b.ownerId)"
+                :size="26"
+                @click="reqTransfer(index)"
                 ><Share
               /></el-icon>
             </div>
@@ -165,7 +168,6 @@ import {
   reqPostComment,
   reqTransferBlog
 } from '@/api/blog';
-import { fullFormatTimestamp } from '@/utils/time';
 
 // uid
 const store = useStore();
@@ -191,15 +193,20 @@ const picturesInput = ref([] as UploadFile[]);
 let base64Pictures: string[] = [];
 const onPitcuresChange = (file: UploadFile, list: UploadFile[]) => {
   picturesInput.value = list;
-  const reader = new FileReader();
-  reader.onload = function () {
-    const base64 = this.result as string;
-    base64Pictures = [base64];
-  };
-  reader.readAsDataURL(file.raw);
+  if (list.length) {
+    const reader = new FileReader();
+    reader.onload = function () {
+      const base64 = this.result as string;
+      base64Pictures = [base64];
+    };
+    reader.readAsDataURL(list[0].raw);
+  } else {
+    base64Pictures = [];
+  }
 };
 const submitPostBlog = () => {
-  if (newBlogTextInput.value.length > 0) {
+  if (newBlogTextInput.value.length > 0 || base64Pictures.length > 0) {
+    console.log(base64Pictures);
     reqPostBlog({
       userId: '' + uid.value,
       context: newBlogTextInput.value,
@@ -223,7 +230,7 @@ const blogList = ref<Blog[]>([]);
 const fetchBlogList = () => {
   reqListBlog(uid.value).then((res) => {
     if (res.code === 0) {
-      blogList.value = res.data;
+      blogList.value = res.data.reverse();
     }
   });
 };
@@ -299,6 +306,7 @@ const reqTransfer = (index: number) => {
       }).then((res) => {
         if (res.code === 0) {
           ElMessage.success('blog shared');
+          refreshZone();
         }
       });
     }

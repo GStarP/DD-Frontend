@@ -117,7 +117,7 @@ import { usn } from '@/utils/cache';
 import { sendMessage } from '@/plugins/im';
 import { formatTimestamp } from '@/utils/time';
 import Emoji from '@/plugins/emoji';
-import { scaleImage } from '@/utils/image';
+import { ImageHandler } from '@/utils/image';
 
 // 获取路由参数
 const route = useRoute();
@@ -168,24 +168,27 @@ function onUploadImage(event: any) {
     // 读取 base64 编码并发送消息
     reader.onload = function () {
       const base64 = this.result as string;
-      console.log('before');
-      scaleImage(base64, { w: 32, h: 32 }).then((newBase64) => {
-        const message: Message = {
-          sender: uid.value,
-          receiver: id.value,
-          group: type.value === 'g' ? 1 : 0,
-          type: 'image',
-          timestamp: new Date().getTime(),
-          payload: newBase64
-        };
-        store.commit('recvMessage', {
-          k: `${type.value}${id.value}`,
-          message
-        });
-        sendMessage(message);
-        // 将文件路径置空, 使得上传相同图片依然可以触发
-        event.target.value = null;
+      // 先将图片显示在本地
+      const localMessage: Message = {
+        sender: uid.value,
+        receiver: id.value,
+        group: type.value === 'g' ? 1 : 0,
+        type: 'image',
+        timestamp: new Date().getTime(),
+        payload: base64
+      };
+      store.commit('recvMessage', {
+        k: `${type.value}${id.value}`,
+        localMessage
       });
+      // 拆分图像数据, 依次上传
+      const imageChunks = ImageHandler.splitImage(base64);
+      for (const chunk of imageChunks) {
+        localMessage.payload = JSON.stringify(chunk);
+        sendMessage(localMessage);
+      }
+      // 将文件路径置空, 使得上传相同图片依然可以触发
+      event.target.value = null;
     };
     reader.readAsDataURL(image);
   }

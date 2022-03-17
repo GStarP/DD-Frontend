@@ -4,6 +4,7 @@
 
 import store from '@/plugins/vuex';
 import { formatTimestamp } from '@/utils/time';
+import { ImageHandler } from '@/utils/image';
 
 let ws: WebSocket | null = null;
 
@@ -13,7 +14,7 @@ export function initIM(userId: number) {
   ws.onopen = () => {
     console.log('online');
     store.commit('online', true);
-    // heartCheck(ws);
+    heartCheck(ws, userId);
   };
 
   ws.onclose = () => {
@@ -34,9 +35,16 @@ export function initIM(userId: number) {
     } else if (msg.type === 'heart') {
       if (timeoutTimer) clearTimeout(timeoutTimer);
       heartTimer = setTimeout(() => {
-        heartCheck(ws);
+        heartCheck(ws, userId);
       }, HEART_INTERVAL);
-    } else {
+    } else if (msg.type === 'image') {
+      // 合并图片
+      const renderImageMessage = (base64: string) => {
+        msg.payload = base64;
+        receiveMessage(msg);
+      };
+      ImageHandler.mergeImage(JSON.parse(msg.payload), renderImageMessage);
+    } else if (msg.type === 'text') {
       receiveMessage(msg);
     }
   };
@@ -133,9 +141,9 @@ const HEART_INTERVAL = 8 * 1000;
 const TIMEOUT = 3 * 1000;
 let timeoutTimer = setTimeout(() => null);
 let heartTimer = setTimeout(() => {});
-function heartCheck(ws: WebSocket | null) {
+function heartCheck(ws: WebSocket | null, userId: number) {
   if (ws === null) return;
-  sendHeartMessage();
+  sendHeartMessage(userId);
   timeoutTimer = setTimeout(() => {
     ws.close();
     store.commit('online', false);
@@ -143,10 +151,10 @@ function heartCheck(ws: WebSocket | null) {
 }
 
 // 发送心跳消息
-function sendHeartMessage() {
+function sendHeartMessage(userId: number) {
   sendMessage({
     type: 'heart',
-    sender: 0,
+    sender: userId,
     receiver: 0,
     payload: '',
     group: 0,

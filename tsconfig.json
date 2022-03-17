@@ -11,7 +11,7 @@
     "esModuleInterop": true,
     "lib": ["esnext", "dom"],
     // element plus ts support
-    "types": ["element-plus/global", "node"],
+    "types": ["element-plus/global", "node", "uuid"],
     // editor alias support
     "baseUrl": ".",
     "paths": {

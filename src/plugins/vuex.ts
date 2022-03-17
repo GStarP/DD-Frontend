@@ -1,4 +1,5 @@
 import { usnCache } from '@/utils/cache';
+import { useRoute } from 'vue-router';
 import { createStore } from 'vuex';
 
 // 刷新时加载保留的状态
@@ -28,8 +29,9 @@ const store = createStore({
     dialogs: {} as { [k: string]: Message[] },
     // 好友列表必须外包给 vuex 否则 ws 无法修改
     friendList: [] as FriendBriefWithMsg[],
-
-    groupList: [] as GroupBriefWithMsg[]
+    groupList: [] as GroupBriefWithMsg[],
+    // 当前对话
+    currentDialog: ''
   },
   getters: {
     messages(state, k: string) {
@@ -78,6 +80,9 @@ const store = createStore({
     },
     groupList(state, gl: GroupBriefWithMsg[]) {
       state.groupList = gl;
+    },
+    curDialog(state, k: string) {
+      state.currentDialog = k;
     }
   }
 });

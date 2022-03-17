@@ -108,6 +108,8 @@ const toFriendDialog = (uid: number, userName: string, index: number) => {
     index
   });
   curFriend.value = uid;
+  // 更新当前对话
+  store.commit('curDialog', `f${uid}`);
   router.push({
     path: `/home/dialog/f/${uid}/${userName}`
   });

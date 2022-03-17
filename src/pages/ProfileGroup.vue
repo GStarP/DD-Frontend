@@ -119,11 +119,14 @@ let groupInfo = ref({
   groupName: 'Loading...',
   members: []
 } as GroupInfo);
-reqGroupInfo(groupId).then((res) => {
-  if (res.code === 0) {
-    groupInfo.value = res.data;
-  }
-});
+const fetchGroupInfo = () => {
+  reqGroupInfo(groupId).then((res) => {
+    if (res.code === 0) {
+      groupInfo.value = res.data;
+    }
+  });
+};
+fetchGroupInfo();
 
 // 判断用户是否为当前群群主
 const isGroupMaster = computed(() =>
@@ -170,6 +173,8 @@ const handleSelectFriend = (v: FriendBrief[]) => {
 const inviteSelectedFriends = () => {
   console.log(selectedFriends.value);
   inviteShow.value = false;
+
+  fetchGroupInfo();
 };
 
 // 解散/退出群组
@@ -194,13 +199,15 @@ const quitGroup = () => {
   });
 };
 
-// 踢出用户
+// TODO 踢出用户
 const kick = (u: UserBrief) => {
   ElMessageBox.confirm(
     `Are you sure to kick ${u.userName}?`,
     'Kick Member'
   ).then(() => {
     ElMessage.info('kicked');
+
+    fetchGroupInfo();
   });
 };
 </script>

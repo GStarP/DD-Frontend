@@ -9,6 +9,7 @@ interface FriendBrief {
   userId: number;
   friendId: number;
   nickname: string;
+  black: 0 | 1;
 }
 
 // 带最新消息的好友信息
@@ -16,6 +17,7 @@ interface FriendBriefWithMsg {
   userId: number;
   friendId: number;
   nickname: string;
+  black: 0 | 1;
   msg: string;
   msgTime: string;
   msgNum: number;

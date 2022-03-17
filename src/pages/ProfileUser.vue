@@ -172,12 +172,15 @@ let userInfo = ref({
   blacked: false
 } as UserInfo);
 // 获取
-reqGetUserInfo(userId, uid.value).then((res) => {
-  if (res.code === 0) {
-    userInfo.value = res.data;
-    userInfoInput.value = res.data;
-  }
-});
+const fetchUserInfo = () => {
+  reqGetUserInfo(userId, uid.value).then((res) => {
+    if (res.code === 0) {
+      userInfo.value = res.data;
+      userInfoInput.value = res.data;
+    }
+  });
+};
+fetchUserInfo();
 
 /**
  * 顶部栏
@@ -267,6 +270,7 @@ const blackenFriend = () => {
     }).then((res) => {
       if (res.code === 0) {
         ElMessage.success('friend blackend');
+        fetchUserInfo();
       }
     });
   });
@@ -282,6 +286,7 @@ const unblackenFriend = () => {
     }).then((res) => {
       if (res.code === 0) {
         ElMessage.success('friend unblackend');
+        fetchUserInfo();
       }
     });
   });

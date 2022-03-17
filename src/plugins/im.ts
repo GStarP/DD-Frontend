@@ -29,7 +29,7 @@ export function initIM(userId: number) {
 
   ws.onmessage = (e: MessageEvent<string>) => {
     const msg: Message = JSON.parse(e.data);
-    console.log('receive msg', msg);
+    if (msg.type !== 'heart') console.log('receive msg', msg);
     if (msg.type === 'ack') {
       // do nothing
     } else if (msg.type === 'heart') {
@@ -59,19 +59,14 @@ function receiveMessage(message: Message) {
   let k: string;
   if (message.group === 0) {
     k = 'f' + message.sender;
-    rearrangeFriendList(message);
+    rearrangeFriendList(message, k);
   } else {
     k = 'g' + message.receiver;
     rearrangeGroupList(message);
   }
-  // 接收到对应的消息记录中
-  store.commit('recvMessage', {
-    k,
-    message
-  });
 }
 
-function rearrangeFriendList(message: Message) {
+function rearrangeFriendList(message: Message, k: string) {
   const friendId = message.sender;
   const friendList: FriendBriefWithMsg[] = store.state.friendList.slice();
   // 寻找新消息的发送者的下标
@@ -82,8 +77,13 @@ function rearrangeFriendList(message: Message) {
       break;
     }
   }
-  // 把这个发送者移到列表最前端
+
   if (index > -1) {
+    // 如果发送者被拉黑, 则不进行以下步骤
+    if (friendList[index].black === 1) {
+      return;
+    }
+    // 把这个发送者移到列表最前端
     const e = friendList.splice(index, 1)[0];
     if (message.type === 'text') {
       e.msg = message.payload;
@@ -91,9 +91,16 @@ function rearrangeFriendList(message: Message) {
       e.msg = '[image]';
     }
     e.msgTime = formatTimestamp(message.timestamp);
-    e.msgNum++;
+    if ('f' + friendId !== store.state.currentDialog) {
+      e.msgNum++;
+    }
     friendList.unshift(e);
     store.commit('friendList', friendList);
+    // 接收到对应的消息记录中
+    store.commit('recvMessage', {
+      k,
+      message
+    });
   }
 }
 
@@ -117,7 +124,9 @@ function rearrangeGroupList(message: Message) {
       e.msg = '[image]';
     }
     e.msgTime = formatTimestamp(message.timestamp);
-    e.msgNum++;
+    if ('g' + groupId !== store.state.currentDialog) {
+      e.msgNum++;
+    }
     groupList.unshift(e);
     store.commit('groupList', groupList);
   }
@@ -127,7 +136,9 @@ export function sendMessage(message: Message) {
   if (ws) {
     try {
       ws.send(JSON.stringify(message));
-      console.log('send msg', message);
+      if (message.type !== 'heart') {
+        console.log('send msg', message);
+      }
     } catch (e) {
       console.error(e);
     }

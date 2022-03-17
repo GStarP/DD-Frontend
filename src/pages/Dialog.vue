@@ -225,10 +225,14 @@ const confirmSendText = () => {
       timestamp: new Date().getTime(),
       payload: textInput.value
     };
-    store.commit('recvMessage', {
-      k: `${type.value}${id.value}`,
-      message
-    });
+    // 群聊中自己发的消息不需要预先显示
+    if (type.value !== 'g') {
+      store.commit('recvMessage', {
+        k: `${type.value}${id.value}`,
+        message
+      });
+    }
+
     sendMessage(message);
     textInput.value = '';
   }

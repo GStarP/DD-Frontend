@@ -19,7 +19,7 @@
     </div>
     <div class="dialog__main">
       <div class="message-list">
-        <el-scrollbar>
+        <el-scrollbar ref="dialogScroll">
           <div
             class="message"
             :class="{
@@ -101,7 +101,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, ref, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import {
   ArrowLeft,
@@ -118,6 +118,7 @@ import { sendMessage } from '@/plugins/im';
 import { formatTimestamp } from '@/utils/time';
 import Emoji from '@/plugins/emoji';
 import { ImageHandler } from '@/utils/image';
+import type { ElScrollbar } from 'element-plus';
 
 // 获取路由参数
 const route = useRoute();
@@ -146,9 +147,30 @@ const toProfile = () => {
 /**
  * 聊天框
  */
-const messages = computed<Message[]>(
-  () => store.state.dialogs[`${type.value}${id.value}`] || []
-);
+const messages = computed<Message[]>(() => {
+  // 确保聊天框总在最下
+  toDialogBottom();
+  return store.state.dialogs[`${type.value}${id.value}`] || [];
+});
+
+// 提前保存固定不变的 wrapper 高度, 减少回流
+let clientHeight = 0;
+nextTick(() => {
+  clientHeight =
+    document.querySelector('.message-list .el-scrollbar__wrap')?.clientHeight ||
+    0;
+});
+const dialogScroll = ref<InstanceType<typeof ElScrollbar>>();
+// 聊天框跳转最下方
+function toDialogBottom() {
+  nextTick(() => {
+    const scrollHeight =
+      document.querySelector('.message-list .el-scrollbar__wrap')
+        ?.scrollHeight || 0;
+    if (scrollHeight > clientHeight)
+      dialogScroll.value!.setScrollTop(scrollHeight - clientHeight);
+  });
+}
 
 /**
  * 输入框
@@ -179,8 +201,9 @@ function onUploadImage(event: any) {
       };
       store.commit('recvMessage', {
         k: `${type.value}${id.value}`,
-        localMessage
+        message: localMessage
       });
+      toDialogBottom();
       // 拆分图像数据, 依次上传
       const imageChunks = ImageHandler.splitImage(base64);
       for (const chunk of imageChunks) {
@@ -231,6 +254,7 @@ const confirmSendText = () => {
         k: `${type.value}${id.value}`,
         message
       });
+      toDialogBottom();
     }
 
     sendMessage(message);

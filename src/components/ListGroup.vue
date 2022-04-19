@@ -173,6 +173,7 @@ const toGroupDialog = (gid: number, gname: string, index: number) => {
       background-color: #dcdfe6;
     }
     &__main {
+      flex: 1;
       display: flex;
       flex-direction: column;
       margin-left: 12px;
@@ -186,6 +187,7 @@ const toGroupDialog = (gid: number, gname: string, index: number) => {
       font-size: 16px;
     }
     &__recent-text {
+      flex: 1;
       font-size: 13px;
       color: #909399;
       height: 44px - 24px;

@@ -87,6 +87,7 @@ const toGroupProfile = (groupId: number) => {
 const joinGroup = (groupId: number) => {
   ElMessageBox.prompt('Input group request reason', 'Group Request').then(
     (data) => {
+      if (!data.value) data.value = 'hello';
       if (data.value.length > 0) {
         reqJoinGroup({
           userId: uid.value,

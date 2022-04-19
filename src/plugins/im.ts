@@ -29,6 +29,11 @@ export function initIM(userId: number) {
 
   ws.onmessage = (e: MessageEvent<string>) => {
     const msg: Message = JSON.parse(e.data);
+    if (typeof msg.sender === 'string') msg.sender = parseInt(msg.sender);
+    if (typeof msg.receiver === 'string') msg.receiver = parseInt(msg.receiver);
+    if (typeof msg.timestamp === 'string')
+      msg.timestamp = parseInt(msg.timestamp);
+
     if (msg.type !== 'heart') console.log('receive msg', msg);
     if (msg.type === 'ack') {
       // do nothing
@@ -62,7 +67,7 @@ function receiveMessage(message: Message) {
     rearrangeFriendList(message, k);
   } else {
     k = 'g' + message.receiver;
-    rearrangeGroupList(message);
+    rearrangeGroupList(message, k);
   }
 }
 
@@ -104,7 +109,7 @@ function rearrangeFriendList(message: Message, k: string) {
   }
 }
 
-function rearrangeGroupList(message: Message) {
+function rearrangeGroupList(message: Message, k: string) {
   const groupId = message.receiver;
   const groupList: GroupBriefWithMsg[] = store.state.groupList.slice();
   // 寻找新消息的群组的下标
@@ -129,6 +134,10 @@ function rearrangeGroupList(message: Message) {
     }
     groupList.unshift(e);
     store.commit('groupList', groupList);
+    store.commit('recvMessage', {
+      k,
+      message
+    });
   }
 }
 

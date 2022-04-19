@@ -117,3 +117,25 @@ export async function reqQuitGroup(params: {
   });
   return data;
 }
+
+// 1.9 邀请入群
+export async function inviteToGroup(params: {
+  userId: number;
+  groupId: number;
+}) {
+  const { data } = await axios.post('/group/invite', null, {
+    params
+  });
+  return data;
+}
+
+// 1.10 移除出群
+export async function removeFromGroup(params: {
+  userId: number;
+  groupId: number;
+}) {
+  const { data } = await axios.post('/group/remove', null, {
+    params
+  });
+  return data;
+}

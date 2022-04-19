@@ -26,9 +26,9 @@
             <el-dialog v-model="inviteShow" title="Invite Friend" width="400px">
               <el-table
                 :data="inviteFriendList"
-                @selection-change="handleSelectFriend"
+                highlight-current-row
+                @current-change="handleSelectFriend"
               >
-                <el-table-column type="selection" width="64"></el-table-column>
                 <el-table-column
                   label="ID"
                   property="friendId"
@@ -73,7 +73,7 @@
             >
             <div class="group-members-item__main">
               <div class="group-members-item__name">
-                <div>{{ m.userName }}</div>
+                <div @click="toUserProfile(m.userId)">{{ m.userName }}</div>
                 <el-tag v-if="index === 0">Master</el-tag>
                 <el-tag v-if="m.userId === uid" type="warning">Me</el-tag>
               </div>
@@ -101,7 +101,12 @@ import { ArrowLeft, CircleClose } from '@element-plus/icons-vue';
 import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { reqGroupInfo, reqQuitGroup } from '@/api/group';
+import {
+  reqGroupInfo,
+  reqQuitGroup,
+  inviteToGroup,
+  removeFromGroup
+} from '@/api/group';
 import { generateAvatarColor } from '@/utils/avatar';
 import { reqListFriend } from '@/api/friend';
 
@@ -135,6 +140,12 @@ const isGroupMaster = computed(() =>
     : false
 );
 
+const toUserProfile = (userId: number) => {
+  router.push({
+    path: `/home/profile/f/${userId}`
+  });
+};
+
 /**
  * 顶部栏
  */
@@ -164,17 +175,27 @@ const inviteFriendList = computed<FriendBrief[]>(() => {
   }
   return li;
 });
-// 控制多选
-const selectedFriends = ref<FriendBrief[]>([]);
-const handleSelectFriend = (v: FriendBrief[]) => {
-  selectedFriends.value = v;
+// 控制选择
+const currentSelect = ref<FriendBrief>();
+const handleSelectFriend = (v: FriendBrief) => {
+  currentSelect.value = v;
 };
-// TODO 请求邀请
+// 请求邀请
 const inviteSelectedFriends = () => {
-  console.log(selectedFriends.value);
-  inviteShow.value = false;
-
-  fetchGroupInfo();
+  inviteToGroup({
+    userId: currentSelect.value.friendId,
+    groupId: groupInfo.value.groupId
+  })
+    .then((res) => {
+      if (res.code === 0) {
+        ElMessage.success('successfully invited');
+        fetchGroupInfo();
+      }
+      inviteShow.value = false;
+    })
+    .catch((e) => {
+      inviteShow.value = false;
+    });
 };
 
 // 解散/退出群组
@@ -199,15 +220,21 @@ const quitGroup = () => {
   });
 };
 
-// TODO 踢出用户
+// 踢出用户
 const kick = (u: UserBrief) => {
   ElMessageBox.confirm(
     `Are you sure to kick ${u.userName}?`,
     'Kick Member'
   ).then(() => {
-    ElMessage.info('kicked');
-
-    fetchGroupInfo();
+    removeFromGroup({
+      userId: u.userId,
+      groupId: groupInfo.value.groupId
+    }).then((res) => {
+      if (res.code === 0) {
+        ElMessage.success('successfully kicked');
+        fetchGroupInfo();
+      }
+    });
   });
 };
 </script>

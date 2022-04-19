@@ -88,7 +88,9 @@
             </div>
             <div class="blog__main">
               <div class="blog-text">{{ b.context }}</div>
-              <div class="blog-img" v-if="b.pics.length > 0"></div>
+              <div class="blog-img" v-if="b.pics.length > 0">
+                <img :src="b.pics[0]" />
+              </div>
             </div>
             <div class="blog__footer">
               <el-icon
@@ -230,7 +232,7 @@ const blogList = ref<Blog[]>([]);
 const fetchBlogList = () => {
   reqListBlog(uid.value).then((res) => {
     if (res.code === 0) {
-      blogList.value = res.data.reverse();
+      blogList.value = res.data;
     }
   });
 };
@@ -511,6 +513,14 @@ const refreshZone = () => {
     &-text {
       font-size: 18px;
       line-height: 28px;
+    }
+    &-img {
+      margin-top: 8px;
+      img {
+        max-width: 100%;
+        border: 1px solid #c0c4cc;
+        border-radius: 4px;
+      }
     }
     &__footer {
       height: 36px;

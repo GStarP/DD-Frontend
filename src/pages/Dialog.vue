@@ -207,8 +207,9 @@ function onUploadImage(event: any) {
       // 拆分图像数据, 依次上传
       const imageChunks = ImageHandler.splitImage(base64);
       for (const chunk of imageChunks) {
-        localMessage.payload = JSON.stringify(chunk);
-        sendMessage(localMessage);
+        const msg = Object.assign({}, localMessage);
+        msg.payload = JSON.stringify(chunk);
+        sendMessage(msg);
       }
       // 将文件路径置空, 使得上传相同图片依然可以触发
       event.target.value = null;
@@ -249,13 +250,11 @@ const confirmSendText = () => {
       payload: textInput.value
     };
     // 群聊中自己发的消息不需要预先显示
-    if (type.value !== 'g') {
-      store.commit('recvMessage', {
-        k: `${type.value}${id.value}`,
-        message
-      });
-      toDialogBottom();
-    }
+    store.commit('recvMessage', {
+      k: `${type.value}${id.value}`,
+      message
+    });
+    toDialogBottom();
 
     sendMessage(message);
     textInput.value = '';

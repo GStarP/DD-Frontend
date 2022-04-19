@@ -100,6 +100,7 @@ const toUserProfile = (userId: number) => {
 const sendFriendReq = (friendId: number) => {
   ElMessageBox.prompt('Input friend request reason', 'Friend Request').then(
     (data) => {
+      if (!data.value) data.value = 'hello';
       if (data.value.length > 0) {
         reqApplyFriend({
           userId: uid.value,

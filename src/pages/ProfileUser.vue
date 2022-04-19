@@ -64,6 +64,7 @@
         <div class="user-profile__attr"><span>Age</span>{{ userInfo.age }}</div>
       </div>
       <el-button
+        v-if="userInfo.friend"
         class="look-zone"
         size="large"
         type="primary"
@@ -228,6 +229,7 @@ const submitEditProfile = () => {
 const addFriend = () => {
   ElMessageBox.prompt('Input friend request reason', 'Friend Request').then(
     (data) => {
+      if (!data.value) data.value = 'hello';
       if (data.value.length > 0) {
         reqApplyFriend({
           userId: uid.value,
@@ -254,6 +256,19 @@ const delFriend = () => {
     }).then((res) => {
       if (res.code === 0) {
         ElMessage.success('friend deleted');
+        // 局部更改列表状态
+        let fl = store.state.friendList;
+        let idx = -1;
+        for (let i = 0; i < fl.length; ++i) {
+          if (uid.value === fl[i].friendId) {
+            idx = i;
+            break;
+          }
+        }
+        if (idx !== -1) {
+          fl.splice(idx, 1);
+          store.commit('friendList', fl);
+        }
       }
     });
   });
@@ -271,6 +286,19 @@ const blackenFriend = () => {
       if (res.code === 0) {
         ElMessage.success('friend blackend');
         fetchUserInfo();
+        // 局部更改列表状态
+        let fl = store.state.friendList;
+        let idx = -1;
+        for (let i = 0; i < fl.length; ++i) {
+          if (uid.value === fl[i].friendId) {
+            idx = i;
+            break;
+          }
+        }
+        if (idx !== -1) {
+          fl[idx].black = 1;
+          store.commit('friendList', fl);
+        }
       }
     });
   });
@@ -287,6 +315,19 @@ const unblackenFriend = () => {
       if (res.code === 0) {
         ElMessage.success('friend unblackend');
         fetchUserInfo();
+        // 局部更改列表状态
+        let fl = store.state.friendList;
+        let idx = -1;
+        for (let i = 0; i < fl.length; ++i) {
+          if (uid.value === fl[i].friendId) {
+            idx = i;
+            break;
+          }
+        }
+        if (idx !== -1) {
+          fl[idx].black = 0;
+          store.commit('friendList', fl);
+        }
       }
     });
   });

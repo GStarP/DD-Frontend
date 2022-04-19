@@ -179,6 +179,7 @@ const toFriendDialog = (uid: number, userName: string, index: number) => {
       background-color: #dcdfe6;
     }
     &__main {
+      flex: 1;
       display: flex;
       flex-direction: column;
       margin-left: 12px;
@@ -202,6 +203,7 @@ const toFriendDialog = (uid: number, userName: string, index: number) => {
       flex: 1;
     }
     &__recent-text {
+      flex: 1;
       font-size: 13px;
       color: #909399;
       height: 44px - 24px;

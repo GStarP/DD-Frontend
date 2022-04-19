@@ -88,7 +88,8 @@ const accept = (userId: number, friendId: number, friendName: string) => {
           nickname: friendName,
           msg: 'no new message',
           msgTime: '',
-          msgNum: 0
+          msgNum: 0,
+          black: 0
         });
         store.commit('friendList', fl);
       }

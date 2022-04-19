@@ -176,7 +176,12 @@ const inviteFriendList = computed<FriendBrief[]>(() => {
   return li;
 });
 // 控制选择
-const currentSelect = ref<FriendBrief>();
+const currentSelect = ref<FriendBrief>({
+  userId: 0,
+  friendId: 0,
+  nickname: '',
+  black: 0
+});
 const handleSelectFriend = (v: FriendBrief) => {
   currentSelect.value = v;
 };

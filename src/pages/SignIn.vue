@@ -32,7 +32,7 @@
           class="icon-btn"
           color="#000"
           size="large"
-          style="color: #fff;"
+          style="color: #fff"
           @click="signInWithGithub"
         >
           <img :src="githubIcon" />
@@ -58,7 +58,7 @@ import { usnCache } from '@/utils/cache';
 const route = useRoute();
 let userId = '';
 const uidStr = route.query.u as string;
-if (uidStr !== '') {
+if (uidStr) {
   userId = uidStr;
 }
 

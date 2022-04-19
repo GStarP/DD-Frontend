@@ -4,3 +4,7 @@ import moment from 'moment';
 export function formatTimestamp(timestamp: number): string {
   return moment(timestamp).format('HH:mm:ss');
 }
+
+export function fullFormatTimestamp(timestamp: number): string {
+  return moment(timestamp).format('yyyy-MM-DD HH:mm:ss');
+}

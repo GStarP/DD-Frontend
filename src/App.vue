@@ -19,5 +19,9 @@ body {
   .el-avatar {
     user-select: none;
   }
+  .el-input__suffix {
+    display: flex;
+    align-items: center;
+  }
 }
 </style>

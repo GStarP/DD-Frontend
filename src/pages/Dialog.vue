@@ -19,7 +19,7 @@
     </div>
     <div class="dialog__main">
       <div class="message-list">
-        <el-scrollbar>
+        <el-scrollbar ref="dialogScroll">
           <div
             class="message"
             :class="{
@@ -40,7 +40,13 @@
               <div class="message-sender">{{ usn(m.sender) }}</div>
               <div class="triangle"></div>
               <div class="message-content">
-                <div>{{ m.payload }}</div>
+                <div v-if="m.type === 'text'">{{ m.payload }}</div>
+                <img
+                  v-if="m.type === 'image'"
+                  :src="m.payload"
+                  title="double click to view"
+                  @dblclick="openImage(m.payload)"
+                />
               </div>
             </div>
 
@@ -52,8 +58,35 @@
       </div>
     </div>
     <div class="dialog__toolbar">
-      <el-icon :size="28" @click="sendImage"><picture-filled /></el-icon>
-      <el-icon :size="28" @click="sendEmoji"><eleme /></el-icon>
+      <el-icon :size="28" @click="sendImage">
+        <input
+          id="sendImageUpload"
+          type="file"
+          accept="image/png, image/jpeg"
+          @change="onUploadImage" /><picture-filled
+      /></el-icon>
+      <el-popover
+        v-model:visible="emojiListVisible"
+        placement="top"
+        :width="200"
+      >
+        <template #reference>
+          <el-icon :size="28" @click.stop="emojiListVisible = !emojiListVisible"
+            ><eleme
+          /></el-icon>
+        </template>
+        <!-- 选择表情时不关闭弹窗, 阻止事件冒泡 -->
+        <div class="emoji-list" @click.stop>
+          <div
+            class="emoji-btn"
+            v-for="(e, i) of Emoji.emojis"
+            :key="'emoji' + i"
+            @click="addEmoji(e)"
+          >
+            {{ e }}
+          </div>
+        </div>
+      </el-popover>
     </div>
     <div class="dialog__input">
       <el-input
@@ -68,7 +101,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, ref, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import {
   ArrowLeft,
@@ -83,6 +116,9 @@ import { generateAvatarColor } from '@/utils/avatar';
 import { usn } from '@/utils/cache';
 import { sendMessage } from '@/plugins/im';
 import { formatTimestamp } from '@/utils/time';
+import Emoji from '@/plugins/emoji';
+import { ImageHandler } from '@/utils/image';
+import type { ElScrollbar } from 'element-plus';
 
 // 获取路由参数
 const route = useRoute();
@@ -111,21 +147,88 @@ const toProfile = () => {
 /**
  * 聊天框
  */
-const messages = computed<Message[]>(
-  () => store.state.dialogs[`${type.value}${id.value}`] || []
-);
+const messages = computed<Message[]>(() => {
+  // 确保聊天框总在最下
+  toDialogBottom();
+  return store.state.dialogs[`${type.value}${id.value}`] || [];
+});
+
+// 提前保存固定不变的 wrapper 高度, 减少回流
+let clientHeight = 0;
+nextTick(() => {
+  clientHeight =
+    document.querySelector('.message-list .el-scrollbar__wrap')?.clientHeight ||
+    0;
+});
+const dialogScroll = ref<InstanceType<typeof ElScrollbar>>();
+// 聊天框跳转最下方
+function toDialogBottom() {
+  nextTick(() => {
+    const scrollHeight =
+      document.querySelector('.message-list .el-scrollbar__wrap')
+        ?.scrollHeight || 0;
+    if (scrollHeight > clientHeight)
+      dialogScroll.value!.setScrollTop(scrollHeight - clientHeight);
+  });
+}
 
 /**
  * 输入框
  */
 // 发送图片
 const sendImage = () => {
-  ElMessage.info('to be continued');
+  // 触发潜藏的 <input>
+  document.getElementById('sendImageUpload')?.click();
 };
-// 发送表情
-const sendEmoji = () => {
-  ElMessage.info('to be continued');
+
+function onUploadImage(event: any) {
+  const e = event.target as HTMLInputElement;
+  const files = e.files;
+  if (files?.length) {
+    const image = files[0];
+    const reader = new FileReader();
+    // 读取 base64 编码并发送消息
+    reader.onload = function () {
+      const base64 = this.result as string;
+      // 先将图片显示在本地
+      const localMessage: Message = {
+        sender: uid.value,
+        receiver: id.value,
+        group: type.value === 'g' ? 1 : 0,
+        type: 'image',
+        timestamp: new Date().getTime(),
+        payload: base64
+      };
+      store.commit('recvMessage', {
+        k: `${type.value}${id.value}`,
+        message: localMessage
+      });
+      toDialogBottom();
+      // 拆分图像数据, 依次上传
+      const imageChunks = ImageHandler.splitImage(base64);
+      for (const chunk of imageChunks) {
+        const msg = Object.assign({}, localMessage);
+        msg.payload = JSON.stringify(chunk);
+        sendMessage(msg);
+      }
+      // 将文件路径置空, 使得上传相同图片依然可以触发
+      event.target.value = null;
+    };
+    reader.readAsDataURL(image);
+  }
+}
+// 在新标签页显示完整图片
+const openImage = (base64: string) => {
+  const img = new Image();
+  img.src = base64;
+  const newWindow = window.open('', '_blank');
+  if (newWindow) {
+    newWindow.document.write(img.outerHTML);
+    newWindow.document.title = 'DongDong | Image View';
+    newWindow.document.close();
+  }
 };
+
 // 发送文字
 let textInput = ref('');
 // 暂不允许输入回车, 按下 Enter 键立即发送消息
@@ -146,14 +249,27 @@ const confirmSendText = () => {
       timestamp: new Date().getTime(),
       payload: textInput.value
     };
-    // TODO 目前自己发送的消息直接渲染上去
+    // 群聊中自己发的消息不需要预先显示
     store.commit('recvMessage', {
       k: `${type.value}${id.value}`,
       message
     });
+    toDialogBottom();
+
     sendMessage(message);
     textInput.value = '';
   }
+};
+
+// 表情列表弹窗
+const emojiListVisible = ref(false);
+// 点击其它地方关闭弹窗
+window.addEventListener('click', () => {
+  if (emojiListVisible.value) emojiListVisible.value = false;
+});
+// 添加表情
+const addEmoji = (e: string) => {
+  textInput.value += e;
 };
 </script>
 
@@ -232,11 +348,15 @@ const confirmSendText = () => {
         background-color: #dcdfe6;
         border-radius: 8px;
         z-index: 2;
+        img {
+          max-width: 40vw;
+        }
       }
       &-time {
         position: absolute;
         top: 50px;
-        left: 1.5px;
+        width: 48px;
+        text-align: center;
         font-size: 12px;
         font-weight: 300;
         color: #909399;
@@ -267,7 +387,6 @@ const confirmSendText = () => {
         }
         .message-time {
           left: auto;
-          right: 1.5px;
         }
         .triangle {
           right: 50px;
@@ -294,7 +413,13 @@ const confirmSendText = () => {
     > i:not(:first-child) {
       margin-left: 16px;
     }
+    #sendImageUpload {
+      position: absolute;
+      width: 0;
+      height: 0;
+    }
   }
+
   &__input {
     height: 200px;
     .el-textarea__inner {
@@ -302,6 +427,27 @@ const confirmSendText = () => {
       resize: none;
       font-size: 18px;
     }
+  }
+}
+.emoji-list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 200px;
+}
+.emoji-btn {
+  $size: 40px;
+  margin: 4px;
+  width: $size - 4px * 2;
+  height: $size - 4px * 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  border-radius: 4px;
+  &:hover {
+    cursor: pointer;
+    background-color: #ebeef5;
   }
 }
 </style>

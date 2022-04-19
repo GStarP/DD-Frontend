@@ -4,6 +4,17 @@ import { mockData } from '@/utils/mock';
 
 // 1.1 查看群组列表
 export async function reqListGroup(userId: number) {
+  // const mock: GroupBrief[] = [
+  //   {
+  //     groupId: 1,
+  //     groupName: 'SCRUM 2022'
+  //   },
+  //   {
+  //     groupId: 2,
+  //     groupName: 'Elden Ring'
+  //   }
+  // ];
+  // return mockData(mock);
   const { data } = await axios.get<Res<GroupBrief[]>>('/group/list', {
     params: {
       userId
@@ -73,11 +84,21 @@ export async function reqCreateGroup(params: {
 
 // 1.7 查看群组资料
 export async function reqGroupInfo(groupId: number) {
-  const groupInfo: GroupInfo = {
-    groupId: 0,
-    groupName: 'SCRUM 2020',
-    members: []
-  };
+  // const mock: GroupInfo = {
+  //   groupId: 0,
+  //   groupName: 'SCRUM 2020',
+  //   members: [
+  //     {
+  //       userId: 0,
+  //       userName: 'HXW'
+  //     },
+  //     {
+  //       userId: 1,
+  //       userName: 'CPH'
+  //     }
+  //   ]
+  // };
+  // return mockData(mock);
   const { data } = await axios.get('/group/info', {
     params: {
       groupId
@@ -92,6 +113,28 @@ export async function reqQuitGroup(params: {
   groupId: number;
 }) {
   const { data } = await axios.post('/group/quit', null, {
+    params
+  });
+  return data;
+}
+
+// 1.9 邀请入群
+export async function inviteToGroup(params: {
+  userId: number;
+  groupId: number;
+}) {
+  const { data } = await axios.post('/group/invite', null, {
+    params
+  });
+  return data;
+}
+
+// 1.10 移除出群
+export async function removeFromGroup(params: {
+  userId: number;
+  groupId: number;
+}) {
+  const { data } = await axios.post('/group/remove', null, {
     params
   });
   return data;

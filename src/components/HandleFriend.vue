@@ -34,9 +34,7 @@
           </div>
         </div>
       </el-scrollbar>
-      <div class="handle-friend-none" v-else>
-        No Request
-      </div>
+      <div class="handle-friend-none" v-else>No Request</div>
     </div>
   </div>
 </template>
@@ -63,7 +61,7 @@ const friendRequests = ref<FriendRequest[]>([]);
 const fetchFriendRequests = () => {
   reqListFriendApply(uid.value).then((res) => {
     if (res.code === 0) {
-      friendRequests.value = res.data;
+      friendRequests.value = res.data.filter((fq) => fq.state === 0);
     }
   });
 };

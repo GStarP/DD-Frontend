@@ -4,10 +4,8 @@
       <el-icon class="profile-user-back" :size="32" @click="back"
         ><ArrowLeft
       /></el-icon>
-      <div class="profile-user-title">
-        User Profile
-      </div>
-      <span style="width: 32px; height: 1px;"></span>
+      <div class="profile-user-title">User Profile</div>
+      <span style="width: 32px; height: 1px"></span>
     </div>
     <div class="profile-user__main">
       <div class="user-profile">
@@ -32,7 +30,7 @@
                 <el-icon :size="32" @click="addFriend"><CirclePlus /></el-icon>
               </template>
               <template v-else>
-                <el-icon :size="30" @click="delFriend" color="#F56C6C"
+                <el-icon :size="32" @click="delFriend" color="#F56C6C"
                   ><Delete
                 /></el-icon>
                 <el-icon
@@ -65,6 +63,15 @@
         </div>
         <div class="user-profile__attr"><span>Age</span>{{ userInfo.age }}</div>
       </div>
+      <el-button
+        v-if="userInfo.friend"
+        class="look-zone"
+        size="large"
+        type="primary"
+        @click="toFriendZone(userInfo.userId)"
+        >VIEW ZONE</el-button
+      >
+      <!-- 修改个人信息弹窗 -->
       <el-dialog
         class="edit-profile"
         v-model="editShow"
@@ -166,12 +173,15 @@ let userInfo = ref({
   blacked: false
 } as UserInfo);
 // 获取
-reqGetUserInfo(userId, uid.value).then((res) => {
-  if (res.code === 0) {
-    userInfo.value = res.data;
-    userInfoInput.value = res.data;
-  }
-});
+const fetchUserInfo = () => {
+  reqGetUserInfo(userId, uid.value).then((res) => {
+    if (res.code === 0) {
+      userInfo.value = res.data;
+      userInfoInput.value = res.data;
+    }
+  });
+};
+fetchUserInfo();
 
 /**
  * 顶部栏
@@ -219,6 +229,7 @@ const submitEditProfile = () => {
 const addFriend = () => {
   ElMessageBox.prompt('Input friend request reason', 'Friend Request').then(
     (data) => {
+      if (!data.value) data.value = 'hello';
       if (data.value.length > 0) {
         reqApplyFriend({
           userId: uid.value,
@@ -245,14 +256,25 @@ const delFriend = () => {
     }).then((res) => {
       if (res.code === 0) {
         ElMessage.success('friend deleted');
+        // 局部更改列表状态
+        let fl = store.state.friendList;
+        let idx = -1;
+        for (let i = 0; i < fl.length; ++i) {
+          if (uid.value === fl[i].friendId) {
+            idx = i;
+            break;
+          }
+        }
+        if (idx !== -1) {
+          fl.splice(idx, 1);
+          store.commit('friendList', fl);
+        }
       }
     });
   });
 };
 // 拉黑/释放
 const blackenFriend = () => {
-  ElMessage.info('to be continued');
-  return;
   ElMessageBox.confirm(
     `Are you sure to send your friend ${userInfo.value.userName} to black list?`,
     'Blacken Friend'
@@ -263,13 +285,25 @@ const blackenFriend = () => {
     }).then((res) => {
       if (res.code === 0) {
         ElMessage.success('friend blackend');
+        fetchUserInfo();
+        // 局部更改列表状态
+        let fl = store.state.friendList;
+        let idx = -1;
+        for (let i = 0; i < fl.length; ++i) {
+          if (uid.value === fl[i].friendId) {
+            idx = i;
+            break;
+          }
+        }
+        if (idx !== -1) {
+          fl[idx].black = 1;
+          store.commit('friendList', fl);
+        }
       }
     });
   });
 };
 const unblackenFriend = () => {
-  ElMessage.info('to be continued');
-  return;
   ElMessageBox.confirm(
     `Are you sure to release your friend ${userInfo.value.userName} from black list?`,
     'Unblacken Friend'
@@ -280,8 +314,28 @@ const unblackenFriend = () => {
     }).then((res) => {
       if (res.code === 0) {
         ElMessage.success('friend unblackend');
+        fetchUserInfo();
+        // 局部更改列表状态
+        let fl = store.state.friendList;
+        let idx = -1;
+        for (let i = 0; i < fl.length; ++i) {
+          if (uid.value === fl[i].friendId) {
+            idx = i;
+            break;
+          }
+        }
+        if (idx !== -1) {
+          fl[idx].black = 0;
+          store.commit('friendList', fl);
+        }
       }
     });
+  });
+};
+// 查看好友空间
+const toFriendZone = (id: number) => {
+  router.push({
+    path: `/home/friend-zone/${id}`
   });
 };
 </script>
@@ -367,6 +421,11 @@ const unblackenFriend = () => {
         color: #303133;
       }
     }
+  }
+  .look-zone {
+    width: 400px;
+    margin-top: 24px;
+    word-spacing: 6px;
   }
   .edit-profile {
     &__attr {

@@ -2,7 +2,7 @@ interface Message {
   sender: number;
   receiver: number;
   group: 0 | 1;
-  type: 'text' | 'ack' | 'image';
+  type: 'ack' | 'text' | 'image' | 'heart';
   timestamp: number;
   payload: string;
 }

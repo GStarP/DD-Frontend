@@ -15,9 +15,9 @@
         <div
           class="group-item"
           :class="{ 'group-item-active': grp.groupId == curGroup }"
-          v-for="grp in groupList"
+          v-for="(grp, index) in groupList"
           :key="'grp' + grp.groupId"
-          @click="toGroupDialog(grp.groupId, grp.groupName)"
+          @click="toGroupDialog(grp.groupId, grp.groupName, index)"
         >
           <el-avatar
             class="group-item__avatar"
@@ -93,11 +93,17 @@ const fetchGroupList = () => {
 };
 fetchGroupList();
 
-// TODO 根据新消息重排序
 // 查看对话
 const curGroup = ref(-1);
-const toGroupDialog = (gid: number, gname: string) => {
+const toGroupDialog = (gid: number, gname: string, index: number) => {
+  // 查看对话时清零所有未读消息数
+  store.commit('clearUnread', {
+    type: 'g',
+    index
+  });
   curGroup.value = gid;
+  // 更新当前对话
+  store.commit('curDialog', `g${gid}`);
   router.push({
     path: `/home/dialog/g/${gid}/${gname}`
   });
@@ -167,6 +173,7 @@ const toGroupDialog = (gid: number, gname: string) => {
       background-color: #dcdfe6;
     }
     &__main {
+      flex: 1;
       display: flex;
       flex-direction: column;
       margin-left: 12px;
@@ -180,6 +187,7 @@ const toGroupDialog = (gid: number, gname: string) => {
       font-size: 16px;
     }
     &__recent-text {
+      flex: 1;
       font-size: 13px;
       color: #909399;
       height: 44px - 24px;

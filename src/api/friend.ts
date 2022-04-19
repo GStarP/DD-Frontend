@@ -16,10 +16,6 @@ export async function reqSignUpWithEmail(params: {
 
 // 2.2 用户登录
 export async function reqSignIn(params: { userId: string; password: string }) {
-  const { data } = await axios.post<Res<UserInfo>>('/user/login', null, {
-    params
-  });
-  return data;
   // const mock: UserInfo = {
   //   userId: 0,
   //   userName: 'HXW',
@@ -32,6 +28,10 @@ export async function reqSignIn(params: { userId: string; password: string }) {
   //   blacked: false
   // };
   // return mockData(mock);
+  const { data } = await axios.post<Res<UserInfo>>('/user/login', null, {
+    params
+  });
+  return data;
 }
 
 // 2.3.1 查找好友（用户）- 使用id查找
@@ -57,15 +57,19 @@ export async function reqSearchUserById(userId: string, uid: number) {
   // return mockData(mock);
 }
 
-// 2.4 查看好友（用户）资料
-export async function reqGetUserInfo(userId: number, uid: number) {
-  const { data } = await axios.get<Res<UserInfo>>('/user/get-information', {
+// 2.3.2 查找好友（用户）- 使用昵称查找
+export async function reqSearchUserByName(userName: string, uid: number) {
+  const { data } = await axios.get<Res<UserInfo[]>>('/user/search-name', {
     params: {
-      userId: '' + userId,
+      userName,
       ownerId: uid
     }
   });
   return data;
+}
+
+// 2.4 查看好友（用户）资料
+export async function reqGetUserInfo(userId: number, uid: number) {
   // const mock: UserInfo = {
   //   userId,
   //   userName: String.fromCharCode(65 + userId) + 'an Zhang',
@@ -74,10 +78,17 @@ export async function reqGetUserInfo(userId: number, uid: number) {
   //   phone: '18356567878',
   //   gender: 0,
   //   age: 40,
-  //   friend: false,
+  //   friend: true,
   //   blacked: false
   // };
   // return mockLoadingData(mock, 1);
+  const { data } = await axios.get<Res<UserInfo>>('/user/get-information', {
+    params: {
+      userId: '' + userId,
+      ownerId: uid
+    }
+  });
+  return data;
 }
 
 // 2.5.1 好友申请
@@ -181,15 +192,6 @@ export async function reqUnblackenFriend(params: {
 
 // 2.8 查看好友列表
 export async function reqListFriend(userId: number) {
-  const { data } = await axios.get<Res<FriendBrief[]>>(
-    '/friend/get-friend-list',
-    {
-      params: {
-        userId: '' + userId
-      }
-    }
-  );
-  return data;
   // const mock: FriendBrief[] = [
   //   {
   //     userId: 0,
@@ -203,6 +205,15 @@ export async function reqListFriend(userId: number) {
   //   }
   // ];
   // return mockData(mock);
+  const { data } = await axios.get<Res<FriendBrief[]>>(
+    '/friend/get-friend-list',
+    {
+      params: {
+        userId: '' + userId
+      }
+    }
+  );
+  return data;
 }
 
 // 2.9 修改个人资料

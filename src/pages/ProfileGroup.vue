@@ -4,10 +4,8 @@
       <el-icon class="profile-group-back" :size="32" @click="back"
         ><ArrowLeft
       /></el-icon>
-      <div class="profile-group-title">
-        Group Profile
-      </div>
-      <span style="width: 32px; height: 1px;"></span>
+      <div class="profile-group-title">Group Profile</div>
+      <span style="width: 32px; height: 1px"></span>
     </div>
     <div class="profile-group__main">
       <div class="group-profile">
@@ -24,6 +22,34 @@
             <div class="group-profile-id">ID: {{ groupInfo.groupId }}</div>
           </div>
           <div class="group-profile__actions">
+            <!-- 邀请朋友 -->
+            <el-dialog v-model="inviteShow" title="Invite Friend" width="400px">
+              <el-table
+                :data="inviteFriendList"
+                highlight-current-row
+                @current-change="handleSelectFriend"
+              >
+                <el-table-column
+                  label="ID"
+                  property="friendId"
+                  width="100"
+                ></el-table-column>
+                <el-table-column
+                  label="Name"
+                  property="nickname"
+                ></el-table-column>
+              </el-table>
+              <el-button
+                class="invite-confirm"
+                type="primary"
+                @click="inviteSelectedFriends"
+                >INVITE</el-button
+              >
+            </el-dialog>
+            <el-button type="primary" @click="inviteShow = true"
+              >INVITE</el-button
+            >
+            <!-- 退出群组 -->
             <el-button type="danger" @click="quitGroup">{{
               isGroupMaster ? 'DISSOLVE' : 'QUIT'
             }}</el-button>
@@ -47,19 +73,19 @@
             >
             <div class="group-members-item__main">
               <div class="group-members-item__name">
-                <div>{{ m.userName }}</div>
+                <div @click="toUserProfile(m.userId)">{{ m.userName }}</div>
                 <el-tag v-if="index === 0">Master</el-tag>
                 <el-tag v-if="m.userId === uid" type="warning">Me</el-tag>
               </div>
               <div class="group-members-item__id">ID: {{ m.userId }}</div>
             </div>
             <div class="group-members-item__action">
-              <!-- TODO 踢出成员 -->
-              <!-- <el-button
+              <!-- 踢出成员 -->
+              <el-button
                 v-if="isGroupMaster && uid !== m.userId"
                 @click="kick(m)"
                 >Kick</el-button
-              > -->
+              >
             </div>
           </div>
         </el-scrollbar>
@@ -75,8 +101,14 @@ import { ArrowLeft, CircleClose } from '@element-plus/icons-vue';
 import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { reqGroupInfo, reqQuitGroup } from '@/api/group';
+import {
+  reqGroupInfo,
+  reqQuitGroup,
+  inviteToGroup,
+  removeFromGroup
+} from '@/api/group';
 import { generateAvatarColor } from '@/utils/avatar';
+import { reqListFriend } from '@/api/friend';
 
 // 获取路由参数
 const route = useRoute();
@@ -92,11 +124,14 @@ let groupInfo = ref({
   groupName: 'Loading...',
   members: []
 } as GroupInfo);
-reqGroupInfo(groupId).then((res) => {
-  if (res.code === 0) {
-    groupInfo.value = res.data;
-  }
-});
+const fetchGroupInfo = () => {
+  reqGroupInfo(groupId).then((res) => {
+    if (res.code === 0) {
+      groupInfo.value = res.data;
+    }
+  });
+};
+fetchGroupInfo();
 
 // 判断用户是否为当前群群主
 const isGroupMaster = computed(() =>
@@ -104,6 +139,12 @@ const isGroupMaster = computed(() =>
     ? store.state.userInfo.userId === groupInfo.value.members[0].userId
     : false
 );
+
+const toUserProfile = (userId: number) => {
+  router.push({
+    path: `/home/profile/f/${userId}`
+  });
+};
 
 /**
  * 顶部栏
@@ -115,6 +156,48 @@ const back = () => {
 /**
  * 群组信息
  */
+// 邀请朋友
+const inviteShow = ref(false);
+const friendList = ref<FriendBrief[]>([]);
+reqListFriend(uid.value).then((res) => {
+  if (res.code === 0) {
+    friendList.value = res.data;
+  }
+});
+const inviteFriendList = computed<FriendBrief[]>(() => {
+  const li = [];
+  const mems = groupInfo.value.members.map((m) => m.userId);
+  // 已入群的好友和管理员不能邀请
+  for (const f of friendList.value) {
+    if (!mems.includes(f.friendId) && f.friendId !== 9999) {
+      li.push(f);
+    }
+  }
+  return li;
+});
+// 控制选择
+const currentSelect = ref<FriendBrief>();
+const handleSelectFriend = (v: FriendBrief) => {
+  currentSelect.value = v;
+};
+// 请求邀请
+const inviteSelectedFriends = () => {
+  inviteToGroup({
+    userId: currentSelect.value.friendId,
+    groupId: groupInfo.value.groupId
+  })
+    .then((res) => {
+      if (res.code === 0) {
+        ElMessage.success('successfully invited');
+        fetchGroupInfo();
+      }
+      inviteShow.value = false;
+    })
+    .catch((e) => {
+      inviteShow.value = false;
+    });
+};
+
 // 解散/退出群组
 const quitGroup = () => {
   const keyword = computed(() => (isGroupMaster.value ? 'dissolve' : 'quit'));
@@ -138,14 +221,22 @@ const quitGroup = () => {
 };
 
 // 踢出用户
-// const kick = (u: UserBrief) => {
-//   ElMessageBox.confirm(
-//     `Are you sure to kick ${u.userName}?`,
-//     'Kick Member'
-//   ).then(() => {
-//     ElMessage.info('kicked');
-//   });
-// };
+const kick = (u: UserBrief) => {
+  ElMessageBox.confirm(
+    `Are you sure to kick ${u.userName}?`,
+    'Kick Member'
+  ).then(() => {
+    removeFromGroup({
+      userId: u.userId,
+      groupId: groupInfo.value.groupId
+    }).then((res) => {
+      if (res.code === 0) {
+        ElMessage.success('successfully kicked');
+        fetchGroupInfo();
+      }
+    });
+  });
+};
 </script>
 
 <style lang="scss">
@@ -182,7 +273,6 @@ const quitGroup = () => {
     padding: 36px 0;
   }
   .group-profile {
-    width: 400px;
     display: flex;
     flex-direction: column;
     &__main {
@@ -203,7 +293,7 @@ const quitGroup = () => {
       font-size: 15px;
     }
     &__actions {
-      margin-left: auto;
+      margin-left: 100px;
       display: flex;
       flex-direction: row;
       > i {
@@ -215,6 +305,14 @@ const quitGroup = () => {
       }
       > i:not(:first-child) {
         margin-left: 16px;
+      }
+
+      .el-dialog__body {
+        padding-top: 0;
+      }
+      .invite-confirm {
+        width: 100%;
+        margin-top: 16px;
       }
     }
   }

@@ -76,6 +76,16 @@ const createGroup = () => {
         }).then((res) => {
           if (res.code === 0) {
             ElMessage.success('new group created');
+            // 同意请求后，立马在好友列表中加入，而申请者只有刷新才知道申请通过
+            const gl: GroupBriefWithMsg[] = store.state.groupList;
+            gl.push({
+              groupId: res.data,
+              groupName: data.value,
+              msg: 'no new message',
+              msgTime: '',
+              msgNum: 0
+            });
+            store.commit('groupList', gl);
           }
         });
       }

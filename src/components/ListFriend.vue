@@ -103,8 +103,13 @@ fetchFriendList();
 const curFriend = ref(-1);
 const toFriendDialog = (uid: number, userName: string, index: number) => {
   // 查看对话时清零所有未读消息数
-  store.commit('clearUnread', index);
+  store.commit('clearUnread', {
+    type: 'f',
+    index
+  });
   curFriend.value = uid;
+  // 更新当前对话
+  store.commit('curDialog', `f${uid}`);
   router.push({
     path: `/home/dialog/f/${uid}/${userName}`
   });
@@ -174,6 +179,7 @@ const toFriendDialog = (uid: number, userName: string, index: number) => {
       background-color: #dcdfe6;
     }
     &__main {
+      flex: 1;
       display: flex;
       flex-direction: column;
       margin-left: 12px;
@@ -197,6 +203,7 @@ const toFriendDialog = (uid: number, userName: string, index: number) => {
       flex: 1;
     }
     &__recent-text {
+      flex: 1;
       font-size: 13px;
       color: #909399;
       height: 44px - 24px;
